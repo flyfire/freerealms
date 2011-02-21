@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+    <title>Free Realms</title>
+</head>
+<body>
+    <div id="header">
+        <h1>Free Realms</h1>
+        <div id="user">
+            <ul>
+            {% if nickname %}
+                <li class="user_info">Welcome, {{ nickname }}!</li>
+                <li><a href="{{ url }}">Logout</a></li>
+            {% else %}
+                <li class="user_info">You are currently not logged in.</li>
+                <li><a href="{{ url }}">Login</a></li>
+            {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+    <p id="footer">
+        Copyright &copy; 2011&ndash;{% now "Y"%} Marc Nieper-Wi&szlig;kirchen
+    </p>
+</body>
+</html>
+

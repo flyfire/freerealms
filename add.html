@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Create a new campaign</h2>
+<p>Fill in the fields below and press the submit button.</p>
+<p class="hint">If you want to abort, simply use your browser's back button.</p>
+
+<form action="add.html" method="post">
+  <fieldset>
+    <legend>Campaign Details</legend>
+    <table>
+      <tr>
+        <th><label for="campaign">Campaign name</label></th>
+        <td><input type="text" name="campaign" /></td>
+      </tr>
+      <tr>
+        <th><label for="system">Game system</label></th>
+        <td><input type="text" name="system" /></td>
+      </tr>
+    </table>
+  </fieldset>
+  <input type="submit" value="Create" />
+</form>
+{% endblock content %}
+

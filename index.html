@@ -1,28 +1,59 @@
-<!doctype html>
+{% extends "base.html" %}
 
-<html>
-<head>
-  <title>Free Realms</title>
-</head>
-<body>
-  <div id="header">
-    <h1>Free Realms</h1>
-    <div id="user">
-      <ul>
-        {% if nickname %}
-          <li class="user_info">Welcome, {{ nickname }}!</li>
-          <li><a href="{{ url }}">Logout</a></li>
-        {% else %}
-          <li class="user_info">You are currently not logged in.</li>
-          <li><a href="{{ url }}">Login</a></li>
-        {% endif %}
-      </ul>
-    </div>
-  </div>
-  <div id="content">
-    <h2>Welcome to the Free Realms</h2>
-  </div>
-  <p id="footer">Copyright &copy; 2011&ndash;{% now "Y"%}
-  Marc Nieper-Wi&szlig;kirchen</p>
-</body>
-</html>
+{% block content %}
+<h2>Welcome to the Free Realms</h2>
+
+<p>
+  The Free Realms is a site dedicated to play-by-post role-playing games.
+</p>
+
+<h3>Create your own campaign</h3>
+<p>
+  In the Free Realms you can easily create your own campaign. Just follow the link below.
+</p>
+<p>
+  If you rather want to join one of the existing campaigns or just lurk around, view the
+  list of hosted campaigns at the bottom of this page.
+</p>
+<ul class="menu">
+  <li><a href="add">Create campaign</a></li>
+</ul>
+
+<h3>Most active campaigns</h3>
+{% if campaigns %}
+<table>
+  <thead>
+    <tr>
+      <th>Campaign Name</th>
+      <th>Game Master</th>
+      <th>Game System</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+{% else %}
+<p class="info">The are currently no campaigns fitting your search criteria.</p>
+{% endif %}
+<form action="/">
+    <fieldset>
+        <legend>Search Criteria</legend>
+        <table>
+            <tr>
+              <th><label for="campaign">Campaign name</label></th>
+              <td><input type="text" name="campaign" />
+            </tr>
+            <tr>
+              <th><label for="gamemaster">Game master</label></th>
+              <td><input type="text" name="gamemaster" />
+            </tr>
+            <tr>
+              <th><label for="system">Game system</label></th>
+              <td><input type="text" name="system" /></td>
+            </tr>
+        </table>
+    </fieldset>
+    <input type="submit" value="Update campaign listing" />
+</form>
+{% endblock content %}
+
