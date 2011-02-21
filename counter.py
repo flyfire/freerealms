@@ -8,12 +8,12 @@ class CounterShard(db.Model):
 NUM_SHARDS = 20
 
 def get_count():
-    total = memcache.get('count', namespace='counter')
+    total = memcache.get('counter')
     if total is None:
         total = 0
         for counter in CounterShard.all():
             total += counter.count
-        memcache.add('count', str(total), 60, namespace='counter')
+        memcache.add('counter', str(total), 60)
     return total
 
 def increment():
@@ -26,5 +26,5 @@ def increment():
         counter.count += 1
         counter.put()
     db.run_in_transaction(txn)
-    memcache.incr('count', namespace='counter')
+    memcache.incr('counter')
 
