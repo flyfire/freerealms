@@ -6,27 +6,26 @@
     <link href='http://fonts.googleapis.com/css?family=Tangerine:bold' rel='stylesheet' type='text/css'>
 </head>
 <body>
-    <div id="header">
-        <div id="user">
-            <ul class="menu">
-            {% if nickname %}
-                <li class="user_info">Welcome, {{ nickname }}!</li>
-                <li><a href="{{ url }}">Logout</a></li>
-            {% else %}
-                <li class="user_info">You are currently not logged in.</li>
-                <li><a href="{{ url }}">Login</a></li>
-            {% endif %}
-            </ul>
+    <div id="wrapper">
+        <div id="header">
+            <div id="user">
+                <ul class="menu">
+                {% if nickname %}
+                    <li class="user_info">Welcome, {{ nickname }}!</li>
+                    <li><a href="{{ url }}">Logout</a></li>
+                {% else %}
+                    <li class="user_info">You are currently not logged in.</li>
+                    <li><a href="{{ url }}">Login</a></li>
+                {% endif %}
+                </ul>
+            </div>
+            <h1><a href="/">Free Realms</a></h1>
         </div>
-        <h1><a href="/">Free Realms</a></h1>
-    </div>
-    {% block sidebars %}{% endblock %}
-    <div id="content">
         {% block content %}{% endblock %}
+        <p id="footer">
+            Copyright &copy; 2011&ndash;{% now "Y"%} Marc Nieper-Wi&szlig;kirchen
+        </p>
     </div>
-    <p id="footer">
-        Copyright &copy; 2011&ndash;{% now "Y"%} Marc Nieper-Wi&szlig;kirchen
-    </p>
 </body>
 </html>
 

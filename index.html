@@ -1,15 +1,13 @@
-{% extends "base.html" %}
+{% extends "two_column.html" %}
 
-{% block sidebars %}
-<div id="navigation">
-  <h3>Quick links</h3>
-</div>
-<div id="sidebar">
-  <h3>Your campaigns</h3>
-</div>
+{% block sidebar %}
+<dl class="sidebar">
+    <dt>Information</dt>
+    <dd>There are currently 1000 games hosted on this site.</dd>
+</dl>
 {% endblock %}
 
-{% block content %}
+{% block main %}
 <h2>Welcome to the Free Realms</h2>
 
 <p>
@@ -63,5 +61,5 @@
     </fieldset>
     <input type="submit" value="Update campaign listing" />
 </form>
-{% endblock content %}
+{% endblock main %}
 

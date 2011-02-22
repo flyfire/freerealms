@@ -1,9 +1,37 @@
 body {
-    margin: 0 auto;
-    width: 80em;
+    margin: 0;
     font-family: Arial, sans-serif;
     padding: 0;
     font-size: 75%;
+    background: black url('/images/background.png') 0 0 repeat-x;
+    color: white;
+}
+
+dl.sidebar {
+    background: #5C123C;
+    margin-right: 2%;
+}
+
+dl.sidebar dt {
+    font: 1.33em/1.13em Arial, Tahoma, Verdana, serif;
+    margin-top: 1.13em;
+    margin-bottom: 1.13em;
+    text-align: center;
+}
+
+dl.sidebar dd {
+    margin: 0;
+    
+}
+
+#wrapper {
+    margin: 0 auto;
+    max-width: 80em;
+    background: url('/images/sidebar.png') 0 0 repeat-x;
+}
+
+#header {
+    background: black url('/images/heading.png') 0 0 repeat-y;
 }
 
 p {
@@ -22,6 +50,7 @@ p {
 }
 
 #user {
+    margin-top: 0.5em;
     float: right;
 }
 
@@ -31,21 +60,24 @@ p {
     width: 14%;
 }
 
-#content {
+#main {
     float: left;
+    width: 7;
+    width: 82%;
 }
 
 #sidebar {
     float: right;
-    clear: right;
-    width: 14%;
+    width: 16%;
+    height: 100%;
 }
 
 h1 {
-    font: 1.67em/0.9em Tangerine, serif; 
-    text-shadow: 4px 4px 4px #aaa;
-    margin-top: 0.9em;
-    margin-bottom: 0.9em;
+    font: 1.67em/0.9em Georgia, serif; 
+    padding-top: 0.9em;
+    padding-bottom: 0.9em;
+    margin: 0;
+    visibility: hidden;
 }
 
 h2 {
@@ -66,7 +98,7 @@ input {
 
 h1 > a {
     text-decoration: none;
-    color: black;
+    color: white;
 }
 
 ul.menu {
@@ -84,6 +116,7 @@ ul.menu li {
 }
 
 #footer {
+    clear: both;
     text-align: center;
 }
 

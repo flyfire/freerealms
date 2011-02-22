@@ -4,9 +4,25 @@ runtime: python
 api_version: 1
 
 handlers:
+- url: /favicon.ico
+  static_files: favicon.ico
+  upload: favicon.ico
 - url: /stylesheets
   static_dir: stylesheets
-
+- url: /images
+  static_dir: images
 - url: /.*
   script: freerealms.py
+
+skip_files:
+- ^(.*/)?app\.yaml
+- ^(.*/)?app\.yml
+- ^(.*/)?index\.yaml
+- ^(.*/)?index\.yml
+- ^(.*/)?#.*#
+- ^(.*/)?.*~
+- ^(.*/)?.*\.py[co]
+- ^(.*/)?.*/RCS/.*
+- ^(.*/)?\..*
+- ^build\.py
 
