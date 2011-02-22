@@ -1,9 +1,20 @@
 body {
-    margin: auto;
+    margin: 0 auto;
     width: 80em;
     font-family: Arial, sans-serif;
     padding: 0;
-    font-size: smaller;
+    font-size: 75%;
+}
+
+p {
+    font-family: Arial, Tahoma, Verdana, sans-serif;
+    line-height: 1.5em;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+.info {
+    font-style: italic;
 }
 
 .error {
@@ -14,15 +25,43 @@ body {
     float: right;
 }
 
-h1 {
-    font-family: Tangerine, serif; 
-    font-size: 1.5em;
-    text-shadow: 4px 4px 4px #aaa;
-    margin-top: 0;
+#navigation {
+    float: left;
+    clear: left;
+    width: 14%;
 }
 
-h2, h3, h4, h5, h6 {
-    font-family: Arial, serif;
+#content {
+    float: left;
+}
+
+#sidebar {
+    float: right;
+    clear: right;
+    width: 14%;
+}
+
+h1 {
+    font: 1.67em/0.9em Tangerine, serif; 
+    text-shadow: 4px 4px 4px #aaa;
+    margin-top: 0.9em;
+    margin-bottom: 0.9em;
+}
+
+h2 {
+    font: 1.5em/1em Arial, Tahoma, Verdana, serif;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+h3 {
+    font: 1.33em/1.13em Arial, Tahoma, Verdana, serif;
+    margin-top: 1.13em;
+    margin-bottom: 1.13em;
+}
+
+input {
+    font-size: inherit;
 }
 
 h1 > a {
