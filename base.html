@@ -2,12 +2,13 @@
 <html>
 <head>
     <title>Free Realms</title>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css">
+    <link href='http://fonts.googleapis.com/css?family=Tangerine:bold' rel='stylesheet' type='text/css'>
 </head>
 <body>
     <div id="header">
-        <h1>Free Realms</h1>
         <div id="user">
-            <ul>
+            <ul class="menu">
             {% if nickname %}
                 <li class="user_info">Welcome, {{ nickname }}!</li>
                 <li><a href="{{ url }}">Logout</a></li>
@@ -17,6 +18,7 @@
             {% endif %}
             </ul>
         </div>
+        <h1><a href="/">Free Realms</a></h1>
     </div>
     <div id="content">
         {% block content %}{% endblock %}

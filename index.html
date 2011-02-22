@@ -18,7 +18,7 @@
   list of hosted campaigns at the bottom of this page.
 </p>
 <ul class="menu">
-  <li><a href="{{ add_url }}">Create campaign</a></li>
+  <li><a href="add.html">Create campaign</a></li>
 </ul>
 
 <h3>Most active campaigns</h3>
@@ -29,6 +29,12 @@
       <th>Campaign Name</th>
       <th>Game System</th>
     </tr>
+    {% for campaign in campaigns %}
+    <tr>
+      <td>{{ campaign.key.name }}</td>
+      <td>{{ campaign.system }}</td>
+    </tr>
+    {% endfor %}
   </thead>
   <tbody>
   </tbody>
@@ -41,16 +47,8 @@
         <legend>Search Criteria</legend>
         <table>
             <tr>
-              <th><label for="campaign">Campaign name</label></th>
-              <td><input type="text" name="campaign" />
-            </tr>
-            <tr>
-              <th><label for="gamemaster">Game master</label></th>
-              <td><input type="text" name="gamemaster" />
-            </tr>
-            <tr>
-              <th><label for="system">Game system</label></th>
-              <td><input type="text" name="system" /></td>
+              <th><label for="keywords">Keywords</label></th>
+              <td><input type="text" name="keywords" value="{{ keywords }}" />
             </tr>
         </table>
     </fieldset>
