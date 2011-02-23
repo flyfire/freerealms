@@ -1,37 +1,36 @@
 body {
-    margin: 0;
+    margin: 0 0.5em;
     font-family: Arial, sans-serif;
     padding: 0;
     font-size: 75%;
-    background: black url('/images/background.png') 0 0 repeat-x;
-    color: white;
+    background: white;
+    color: black;
 }
 
-dl.sidebar {
-    background: #5C123C;
-    margin-right: 2%;
+dl.widgetvbox {
+    background: #eee;
 }
 
-dl.sidebar dt {
+dl.widgetvbox dt {
     font: 1.33em/1.13em Arial, Tahoma, Verdana, serif;
     margin-top: 1.13em;
     margin-bottom: 1.13em;
     text-align: center;
+    border-bottom: 1px solid #ddd;
 }
 
-dl.sidebar dd {
+dl.widgetvbox dd {
     margin: 0;
-    
+    padding: 0 0.5em;
 }
 
 #wrapper {
     margin: 0 auto;
     max-width: 80em;
-    background: url('/images/sidebar.png') 0 0 repeat-x;
 }
 
 #header {
-    background: black url('/images/heading.png') 0 0 repeat-y;
+    border-bottom: 1px solid #88f;
 }
 
 p {
@@ -62,28 +61,30 @@ p {
 
 #main {
     float: left;
-    width: 7;
-    width: 82%;
+    width: 83%;
 }
 
 #sidebar {
     float: right;
     width: 16%;
-    height: 100%;
 }
 
 h1 {
-    font: 1.67em/0.9em Georgia, serif; 
-    padding-top: 0.9em;
-    padding-bottom: 0.9em;
+    font: 1.5em/1em Georgia, serif; 
+    padding-top: 1em;
+    margin-bottom: 1em;
     margin: 0;
-    visibility: hidden;
+    font-weight: bold;
 }
 
 h2 {
-    font: 1.5em/1em Arial, Tahoma, Verdana, serif;
-    margin-top: 1em;
-    margin-bottom: 1em;
+    font: 1.67em/0.9em Arial, Tahoma, Verdana, serif;
+    margin-top: 0.9em;
+    margin-bottom: 0.9em;
+    border-bottom: 1px solid #ccc;
+    color: #c00;
+    font-weight: bold;
+    font-style: italic;
 }
 
 h3 {
@@ -98,7 +99,7 @@ input {
 
 h1 > a {
     text-decoration: none;
-    color: white;
+    color: #88f;
 }
 
 ul.menu {

@@ -1,14 +1,14 @@
 {% extends "two_column.html" %}
 
 {% block sidebar %}
-<dl class="sidebar">
+<dl class="widgetvbox">
     <dt>Information</dt>
     <dd>There are currently 1000 games hosted on this site.</dd>
 </dl>
 {% endblock %}
 
 {% block main %}
-<h2>Welcome to the Free Realms</h2>
+<h2>Welcome to the Free Realms!</h2>
 
 <p>
   The Free Realms is a site dedicated to play-by-post role-playing games.
@@ -28,38 +28,42 @@
   <li><a href="add.html">Create campaign</a></li>
 </ul>
 
-<h3>Most active campaigns</h3>
-{% if campaigns %}
-<table>
-  <thead>
-    <tr>
-      <th>Campaign Name</th>
-      <th>Game System</th>
-    </tr>
-    {% for campaign in campaigns %}
-    <tr>
-      <td>{{ campaign.key.name }}</td>
-      <td>{{ campaign.system }}</td>
-    </tr>
-    {% endfor %}
-  </thead>
-  <tbody>
-  </tbody>
-</table>
-{% else %}
-<p class="info">The are currently no campaigns fitting your search criteria.</p>
-{% endif %}
-<form action="/">
-    <fieldset>
-        <legend>Search Criteria</legend>
-        <table>
-            <tr>
-              <th><label for="keywords">Keywords</label></th>
-              <td><input type="text" name="keywords" value="{{ keywords }}" />
-            </tr>
-        </table>
-    </fieldset>
-    <input type="submit" value="Update campaign listing" />
-</form>
+<dl class="widgetvbox">
+    <dt><span class="heading">Most active campaigns</span></dt>
+    <dd>
+    {% if campaigns %}
+    <table>
+      <thead>
+        <tr>
+          <th>Campaign Name</th>
+          <th>Game System</th>
+        </tr>
+        {% for campaign in campaigns %}
+        <tr>
+          <td>{{ campaign.key.name }}</td>
+          <td>{{ campaign.system }}</td>
+        </tr>
+        {% endfor %}
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    {% else %}
+    <p class="info">The are currently no campaigns fitting your search criteria.</p>
+    {% endif %}
+    <form action="/">
+        <fieldset>
+            <legend>Search Criteria</legend>
+            <table>
+                <tr>
+                  <th><label for="keywords">Keywords</label></th>
+                  <td><input type="text" name="keywords" value="{{ keywords }}" />
+                </tr>
+            </table>
+        </fieldset>
+        <input type="submit" value="Update campaign listing" />
+    </form>
+    </dd>
+</dl>
 {% endblock main %}
 
