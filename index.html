@@ -21,8 +21,8 @@
   <a href="https://www.google.com/accounts/">Google Account</a>.)
 </p>
 <p>
-  If you rather want to join one of the existing campaigns or just lurk around, view the
-  list of hosted campaigns at the bottom of this page.
+  If you rather want to join one of the existing campaigns or just lurk around,
+  view the list of hosted campaigns at the bottom of this page.
 </p>
 <ul class="menu">
   <li><a href="add.html">Create campaign</a></li>
@@ -31,26 +31,31 @@
 <dl class="widgetvbox">
     <dt><span class="heading">Most active campaigns</span></dt>
     <dd>
-    {% if campaigns %}
     <table>
       <thead>
         <tr>
           <th>Campaign Name</th>
           <th>Game System</th>
         </tr>
+      </thead>
+      <tbody>
         {% for campaign in campaigns %}
         <tr>
           <td>{{ campaign.key.name }}</td>
           <td>{{ campaign.system }}</td>
         </tr>
         {% endfor %}
-      </thead>
-      <tbody>
+        <tr>
+          <td colspan="3">
+        {% if not campaigns %}
+            <p class="info">
+                The are currently no campaigns online fitting your search criteria.
+            </p>
+        {% endif %}
+          </td>
+        <tr>
       </tbody>
     </table>
-    {% else %}
-    <p class="info">The are currently no campaigns fitting your search criteria.</p>
-    {% endif %}
     <form action="/">
         <fieldset>
             <legend>Search Criteria</legend>

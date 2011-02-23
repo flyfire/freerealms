@@ -8,6 +8,8 @@ body {
 }
 
 dl.widgetvbox {
+    border-width: 0 2px 2px 0;
+    border-style: groove;
 }
 
 dl.widgetvbox dt {
@@ -15,7 +17,8 @@ dl.widgetvbox dt {
     margin-top: 1.13em;
     margin-bottom: 1.13em;
     text-align: center;
-    border-bottom: 1px solid #ccf;
+    background-color: #eef;
+    //border-bottom: 1px solid #88f;
 }
 
 dl.widgetvbox dd {
@@ -67,7 +70,7 @@ p {
 #sidebar {
     float: right;
     width: 16%;
-    border-left: 3px solid #ddf;
+    /*border-left: 3px solid #ddf;*/
 }
 
 h1 {
