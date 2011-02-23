@@ -3,11 +3,14 @@
 <head>
     <title>Free Realms</title>
     <link type="text/css" rel="stylesheet" href="/stylesheets/main.css">
-    <link href='http://fonts.googleapis.com/css?family=Tangerine:bold' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Droid+Serif:regular,italic,bold,bolditalic' rel='stylesheet' type='text/css'>
 </head>
 <body>
-    <div id="wrapper">
         <div id="header">
+            <div id="heading">
+                <h1><a href="/">Free Realms</a></h1>
+            </div>
             <div id="user">
                 <ul class="menu">
                 {% if nickname %}
@@ -19,13 +22,11 @@
                 {% endif %}
                 </ul>
             </div>
-            <h1><a href="/">Free Realms</a></h1>
         </div>
         {% block content %}{% endblock %}
         <p id="footer">
             Copyright &copy; 2011&ndash;{% now "Y"%} Marc Nieper-Wi&szlig;kirchen
         </p>
-    </div>
 </body>
 </html>
 

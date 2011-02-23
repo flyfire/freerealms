@@ -1,15 +1,10 @@
-{% extends "two_column.html" %}
+{% extends "base.html" %}
 
-{% block sidebar %}
-<dl class="widgetvbox">
-    <dt>Information</dt>
-    <dd>There are currently 1000 games hosted on this site.</dd>
-</dl>
-{% endblock %}
+{% block content %}
+<div class="article">
+<h2>Welcome</h2>
 
-{% block main %}
-<h2>Welcome to the Free Realms!</h2>
-
+<h3>Welcome to the Free Realms</h3>
 <p>
   The Free Realms is a site dedicated to play-by-post role-playing games.
 </p>
@@ -27,10 +22,15 @@
 <ul class="menu">
   <li><a href="add.html">Create campaign</a></li>
 </ul>
+</div>
 
-<dl class="widgetvbox">
-    <dt><span class="heading">Most active campaigns</span></dt>
-    <dd>
+<div class="note">
+    <h2>Information</h2>
+    <p>There are currently 1000 games hosted on this site.</p>
+</div>
+
+<div class="endnote">
+    <h2>Most active campaigns</h2>
     <table>
       <thead>
         <tr>
@@ -68,7 +68,7 @@
         </fieldset>
         <input type="submit" value="Update campaign listing" />
     </form>
-    </dd>
-</dl>
-{% endblock main %}
+</div>
+
+{% endblock content %}
 
