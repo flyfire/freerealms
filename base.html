@@ -7,24 +7,26 @@
     <link href='http://fonts.googleapis.com/css?family=Droid+Serif:regular,italic,bold,bolditalic' rel='stylesheet' type='text/css'>
 </head>
 <body>
-    <h1><a href="/">Free Realms</a></h1>
-    <div id="user">
-      <h2>User</h2>
-                <ul class="menu">
-                {% if nickname %}
-                    <li class="user_info">Welcome,
-                        <span class="nickname">{{ nickname }}!</span></li>
-                    <li><a href="{{ url }}">Logout</a></li>
-                {% else %}
-                    <li class="user_info">You are currently not logged in.</li>
-                    <li><a href="{{ url }}">Login</a></li>
-                {% endif %}
-                </ul>
-            </div>
-        {% block content %}{% endblock %}
-        <p id="footer">
-            Copyright &copy; 2011&ndash;{% now "Y"%} Marc Nieper-Wi&szlig;kirchen
-        </p>
+    <div id="header">
+        <ul id="user" class="menu">
+            {% if nickname %}
+                <li class="user_info">Welcome,
+                    <span class="nickname">{{ nickname }}!</span></li>
+                <li><a href="{{ url }}">Logout</a></li>
+            {% else %}
+                <li class="user_info">You are currently not logged in.</li>
+                <li><a href="{{ url }}">Login</a></li>
+            {% endif %}
+        </ul>
+        <h1>
+            <a href="/">{% block heading %}Free Realms{% endblock %}</a>
+            {% block subtitle %}&mdash; <span id="campaign">City of the Spider Queen</span>{% endblock subtitle %}
+        </h1>
+    </div>
+    {% block content %}{% endblock %}
+    <p id="footer">
+        Copyright &copy; 2011&ndash;{% now "Y"%} Marc Nieper-Wi&szlig;kirchen
+    </p>
 </body>
 </html>
 
