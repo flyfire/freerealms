@@ -75,7 +75,7 @@ h1
 }
 
 #user {
-    left: 60em;
+    float: right;
     clear: both;
 }
 
