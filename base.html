@@ -7,14 +7,13 @@
     <link href='http://fonts.googleapis.com/css?family=Droid+Serif:regular,italic,bold,bolditalic' rel='stylesheet' type='text/css'>
 </head>
 <body>
-        <div id="header">
-            <div id="heading">
-                <h1><a href="/">Free Realms</a></h1>
-            </div>
-            <div id="user">
+    <h1><a href="/">Free Realms</a></h1>
+    <div id="user">
+      <h2>User</h2>
                 <ul class="menu">
                 {% if nickname %}
-                    <li class="user_info">Welcome, {{ nickname }}!</li>
+                    <li class="user_info">Welcome,
+                        <span class="nickname">{{ nickname }}!</span></li>
                     <li><a href="{{ url }}">Logout</a></li>
                 {% else %}
                     <li class="user_info">You are currently not logged in.</li>
@@ -22,7 +21,6 @@
                 {% endif %}
                 </ul>
             </div>
-        </div>
         {% block content %}{% endblock %}
         <p id="footer">
             Copyright &copy; 2011&ndash;{% now "Y"%} Marc Nieper-Wi&szlig;kirchen

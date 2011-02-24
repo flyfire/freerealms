@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "welcome.html" %}
 
-{% block content %}
+{% block form %}
+<div id="add" class="endnote">
 <h2>Create a new campaign</h2>
 <p>Fill in the fields below and press the submit button.</p>
 <p class="hint">If you want to abort, simply use your browser's back button.</p>
@@ -26,5 +27,6 @@
   </fieldset>
   <input type="submit" value="Create" />
 </form>
-{% endblock content %}
+</div>
+{% endblock form %}
 

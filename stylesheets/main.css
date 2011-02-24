@@ -5,61 +5,157 @@ body {
     font-size: 75%;
     background: white;
     color: black;
-    max-width: 80em;
+    width: 80em;
+    line-height: 1.5em;
+}
+
+/*
+ * Colors
+ */
+
+/* header */
+h1,
+.note h2 {
+    background-color: #817865;
+    border-color: #494437;
+    border-style: solid;
+    border-width: 0.1em;
+    -moz-border-radius: 0.75em;
+    border-radius: 0.75em;
+    color: #ffffff;
+}
+
+/* content */
+#user,
+.note {
+    background-color: #feeebd;
+    border-color: #8e846b;
+    border-style: solid;
+    border-width: 0.1em;
+    -moz-border-radius: 0.75em;
+    border-radius: 0.75em;
+    color: #383838;
+}
+
+/* Position */
+
+/* elements with 2em */
+h1
+{
+    font-size: 2em;
+    line-height: 0.75em;
+    float: left;
+    position: relative;
+    margin-left: 10.5em;
+    margin-right: 0.5em;
+    margin-top: 0;
+    margin-bottom: 0.85em;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+    width: 18.6em;
 }
 
 .article,
 .note,
 .endnote,
+.criteria,
+.results,
 #header,
 #footer,
-#user,
-#heading
+#user
 {
     float: left;
     position: relative;
-    margin-left: 0.833em;
-    margin-right: 0.833em;
+    margin-left: 1em;
+    margin-right: 1em;
 }
 
-#heading {
+.results {
     margin-left: 0;
 }
 
 #user {
-    text-align: right;
-    margin-right: 0;    
+    left: 60em;
+    clear: both;
 }
 
+.criteria {
+    margin-right: 0;
+}
+
+/*
+#user {
+    text-align: right;
+}
+*/
+
 .article,
-#heading {
-    width: 51.667em;
+.results
+{
+    width: 58em;
+}
+
+
+.note,
+.criteria,
+#user {
+    width: 18em;
 }
 
 .note,
-#user {
-    width: 25em;
+#user
+{
+    width: 17.8em; /* border */
 }
 
 #header,
 #footer,
 .endnote {
-    width: 78.333em;
+    width: 78em;
 }
 
-h3 {
+.endnote {
+    /*border-top-style: ridge;*/
+    padding: 0.5em 0;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+form {
+    background: #ffe;
+}
+
+.note h2,
+ {
+    font-size: 1em;
+    margin: 0.2em;
+    padding: 0.2em;
+    margin-bottom: 0.7em;
+    text-align: center;
+}
+
+.article h2 {
     font-family: "Droid Serif", "Liberation Serif", "Times New Roman", serif;
+    color: #c00;
+}
+
+.article h3 {
+    font-family: "Droid Serif", "Liberation Serif", "Times New Roman", serif;
+    color: #c00;
 }
 
 #header {
-    border-bottom: 1px solid #88f;
+    margin-bottom: 0.5em;
 }
 
 p {
-    font-family: Arial, Tahoma, Verdana, sans-serif;
     line-height: 1.5em;
     margin-top: 1.5em;
     margin-bottom: 1.5em;
+}
+
+.nickname {
+    font-style: italic;
 }
 
 .info {
@@ -70,37 +166,19 @@ p {
     color: red;
 }
 
-#navigation {
-    float: left;
-    clear: left;
-    width: 14%;
-}
-
-#main {
-    float: left;
-    width: 83%;
-    padding-right: 0.5em;
-}
-
-#sidebar {
-    float: right;
-    width: 16%;
-    /*border-left: 3px solid #ddf;*/
-}
 
 h1 {
-    font: 1.5em/1em Georgia, serif; 
-    padding-top: 1em;
-    margin-bottom: 1em;
-    margin-top: 0;
+    text-align: center;
+    //line-height: 0.9em;
     font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 h2 {
-    font: 1.67em/0.9em;
+    /*font: 1.67em/0.9em;
     margin-top: 0.9em;
-    margin-bottom: 0.9em;
-    //border-bottom: 1px solid #ccc;
+    margin-bottom: 0.9em;*/
 }
 
 h3 {
@@ -114,9 +192,12 @@ input {
     font-size: inherit;
 }
 
+h1 {
+}
+
 h1 > a {
     text-decoration: none;
-    color: #88f;
+    color: #fff;
 }
 
 ul.menu {
@@ -135,7 +216,33 @@ ul.menu li {
 }
 
 #footer {
-    clear: both;
     text-align: center;
+}
+
+th {
+    text-align: left;
+    background: #ffc;
+}
+
+caption {
+}
+
+table {
+    border-collapse: collapse;
+}
+
+thead {
+    border-top: thin solid #f88;
+    border-bottom: thin solid #f88;
+}
+
+tbody {
+    border-bottom: thin solid #f88;
+}
+
+caption {
+    font-weight: bold;
+    font-style: italic;
+    line-height: 1.5em;
 }
 
