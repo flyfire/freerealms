@@ -3,6 +3,11 @@ import os
 
 from google.appengine.dist import use_library
 use_library('django', '1.2')
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from django.conf import settings
+settings._targets = None
+
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -103,7 +108,7 @@ class PageRequestHandler(webapp.RequestHandler):
 
 
 class Page(object):
-
+    params = ()
     protected = False
 
     @classmethod
@@ -137,9 +142,11 @@ class FreeRealmsPage(Page):
 
 
 class MainPage(FreeRealmsPage):
+    params = ('keyword,', 'describe')
     template_file = 'index.html'
 
     def update_form_data(self, request):
+        self.describe = request.get('describe')
         self.keywords = request.get('keywords')
 
     def update_page_data(self, request):
@@ -150,6 +157,9 @@ class MainPage(FreeRealmsPage):
         q.order('-modified')
         q.order('__key__')
         self.campaigns = q.fetch(20)
+#        for campaign in self.campaigns:
+#            self.campaign.show_url = 
+#            self.campaign.hide_url = ''
 
     def generate_key_values(self):
         for key_value in super(MainPage, self).generate_key_values():

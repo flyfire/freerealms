@@ -380,6 +380,11 @@ ul.menu li {
     color: blue;
 }
 
+/* LINKS AS BUTTONS */
+a.button:visited {
+    color: blue;
+}
+
 /* TEXT STYLING */
 .nickname {
     font-style: italic;

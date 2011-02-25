@@ -7,3 +7,6 @@ marc
 * CombinedPage
 * implement Campaign counter
 * add DOCUTILS
+
+* Licences für docutils & roman.py
+
