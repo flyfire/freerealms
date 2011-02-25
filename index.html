@@ -4,22 +4,6 @@
 <div id="campaigns" class="search">
     <h2>Browse Campaigns</h2>
 
-    <form class="criteria" action="/">
-        <fieldset>
-            <legend>Search Criteria</legend>
-            <table>
-                <tr>
-                  <th><label for="keywords">Keywords</label></th>
-                  <td><input type="text" name="keywords" value="{{ keywords }}" />
-                </tr>
-                <tr>
-                  <th><label for="active">Only active games</label></th>
-                  <td><input type="checkbox" name="active" value="active"></td>
-            </table>
-        </fieldset>
-        <input type="submit" value="Update campaign listing" />
-    </form>
-
     <table class="results" cellspacing="0">
       <caption>Campaigns that fulfill your search criteria.</caption>
       <thead>
@@ -48,6 +32,22 @@
       </tbody>
     </table>
     
+
+    <form class="criteria" action="/">
+        <fieldset>
+            <legend>Search Criteria</legend>
+            <table>
+                <tr>
+                  <th><label for="keywords">Keywords</label></th>
+                  <td><input type="text" name="keywords" value="{{ keywords }}" />
+                </tr>
+                <tr>
+                  <th><label for="active">Only active games</label></th>
+                  <td><input type="checkbox" name="active" value="active"></td>
+            </table>
+        </fieldset>
+        <input type="submit" value="Update campaign listing" />
+    </form>
 </div>
 {% endblock form %}
 

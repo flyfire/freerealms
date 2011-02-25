@@ -13,6 +13,7 @@ import counter # TODO implement several counters
 import rest
 import version
 
+
 class CalculatedProperty(db.Property):
     data_type = None
     
@@ -31,6 +32,7 @@ def calculated_property(calc_func):
 
 def generate_keywords(string):
     return (word.lower() for word in string.split())
+
 
 class Campaign(db.Model):
     description = db.TextProperty()
@@ -65,15 +67,13 @@ class ETag(object):
 class PageRequestHandler(webapp.RequestHandler):
 
     def __init__(self):
-        self.user = users.get_current_user()
+        self.page = self.page_factory()
+        self.page.user = users.get_current_user()
 
     def get(self):
-        self.page = self.page_factory()
-        if self.page.protected and not self.user:
+        if self.page.protected and not self.page.user:
             self.redirect(users.create_login_url(self.request.uri))
-        user_id = self.user.user_id() if self.user else None
         etag = ETag()
-        etag.update('User', user_id)
         for key, value in self.page.generate_key_values():
             etag.update(key, value)
         etag_str = str(etag)
@@ -82,28 +82,23 @@ class PageRequestHandler(webapp.RequestHandler):
             self.error(304)
             return
         self.page.update_form_data(self.request)
-        self.render()
+        self.page.update_page_data(self.request)
+        self.page.render(self.response)
         
     def post(self):
-        self.page = self.page_factory()
-        if not hasattr(self.page, 'action'):
+        for action in self.page.actions:
+            if action in self.request.arguments():
+                break
+        else:
             self.error(405)
             return
         self.page.update_form_data(self.request)
-        redirection = self.page.action(self.request, self.user)
+        redirection = self.page.handler(action, self.request)
         if redirection:
             self.error(303)
             self.response.headers['Location'] = redirection
             return
-        self.render()
-
-    def render(self):
-        url = (users.create_logout_url(self.request.uri) if self.user
-            else users.create_login_url(self.request.uri))
-        if self.user:
-            self.page.nickname = self.user.nickname()
-        self.page.url = url
-        self.page.update_page_data(self.user)
+        self.page.update_page_data(self.request)
         self.page.render(self.response)
 
 
@@ -122,7 +117,7 @@ class Page(object):
     def update_form_data(self, request):
         pass
 
-    def update_page_data(self, user):
+    def update_page_data(self, request):
         pass
 
     def render(self, response):
@@ -130,13 +125,25 @@ class Page(object):
         response.out.write(template.render(path, self.__dict__))
 
 
-class MainPage(Page):
+class FreeRealmsPage(Page):
+
+    def update_page_data(self, request):
+        self.user_url = (users.create_logout_url(request.uri)
+            if self.user else users.create_login_url(request.uri))
+        
+    def generate_key_values(self):
+        user_id = self.user.user_id() if self.user else None
+        yield 'User', user_id
+
+
+class MainPage(FreeRealmsPage):
     template_file = 'index.html'
 
     def update_form_data(self, request):
         self.keywords = request.get('keywords')
 
-    def update_page_data(self, user):
+    def update_page_data(self, request):
+        super(MainPage, self).__init__()
         q = Campaign.all()
         for word in self.keywords.split():
             q.filter('keywords =', word.lower())
@@ -145,21 +152,24 @@ class MainPage(Page):
         self.campaigns = q.fetch(20)
 
     def generate_key_values(self):
+        for key_value in super(MainPage, self).generate_key_values():
+            yield key_value
         yield 'Counter', counter.get_count()
 
 
-class AddPage(Page):
+class AddPage(FreeRealmsPage):
 
     template_file = 'add.html'
     protected = True
+    actions = ('add',)
 
     def update_form_data(self, request):
         self.name = request.get('name')
         self.system = request.get('system', 'Unspecified')
         self.description = request.get('description')
 
-    def action(self, request, user):
-        if not user:
+    def handler(self, action, request):
+        if not self.user:
             self.error_msg = (
                 u"Not logged in. Please log in before you proceed.")
             return
@@ -167,7 +177,7 @@ class AddPage(Page):
         campaign = Campaign(key_name=self.name,
                             description=self.description,
                             system=self.system,
-                            gamemasters=[user])
+                            gamemasters=[self.user])
         # FIXME Bad key error if name is empty
         def txn():
             if Campaign.get_by_key_name(self.name):
@@ -179,6 +189,7 @@ class AddPage(Page):
             return request.relative_url('/') # FIXME
         self.error_msg = (
             u"There exists already a campaign by the name '%s'." % self.name)
+
 
 
 application = webapp.WSGIApplication(
