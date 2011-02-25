@@ -3,8 +3,6 @@
 <head>
     <title>Free Realms</title>
     <link type="text/css" rel="stylesheet" href="/stylesheets/main.css">
-    <link href='http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold' rel='stylesheet' type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Droid+Serif:regular,italic,bold,bolditalic' rel='stylesheet' type='text/css'>
 </head>
 <body>
     <div id="header">
@@ -20,13 +18,15 @@
         </ul>
         <h1>
             <a href="/">{% block heading %}Free Realms{% endblock %}</a>
-            {% block subtitle %}&mdash; <span id="campaign">City of the Spider Queen</span>{% endblock subtitle %}
+            {% block subtitle %}{% endblock subtitle %}
         </h1>
     </div>
     {% block content %}{% endblock %}
-    <p id="footer">
-        Copyright &copy; 2011&ndash;{% now "Y"%} Marc Nieper-Wi&szlig;kirchen
-    </p>
+    <div id="footer">
+        Copyright &copy; 2011&ndash;{% now "Y"%} 
+        <a href="mailto:marc@nieper-wisskirchen.de?subject=Free%20Realms">Marc
+          Nieper-Wi&szlig;kirchen</a>
+    </div>
 </body>
 </html>
 

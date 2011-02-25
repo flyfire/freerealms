@@ -1,32 +1,37 @@
-{% extends "welcome.html" %}
+{% extends "base.html" %}
 
-{% block form %}
-<div id="add" class="endnote">
-<h2>Create a new campaign</h2>
-<p>Fill in the fields below and press the submit button.</p>
-<p class="hint">If you want to abort, simply use your browser's back button.</p>
+{% block content %}
 
-<form action="add.html" method="post">
-  {% if error_msg %}
-  <p class="error">
-    {{ error_msg }}
-  </p>
-  {% endif %}
-  <fieldset>
-    <legend>Campaign Details</legend>
-    <table>
-      <tr>
-        <th><label for="name">Campaign name</label></th>
-        <td><input type="text" name="name" value="{{ name }}"/></td>
-      </tr>
-      <tr>
-        <th><label for="system">Game system</label></th>
-        <td><input type="text" name="system" value="{{ system }}"/></td>
-      </tr>
-    </table>
-  </fieldset>
-  <input type="submit" value="Create" />
-</form>
+<div class="form">
+    <h2>Create a new campaign</h2>
+    <p>
+        Fill in the fields below and press the submit button.
+        (If you want to abort, simply use your browser's back button.)
+    </p>
+
+    <form action="add.html" method="post">
+      {% if error_msg %}
+      <p class="error">
+        {{ error_msg }}
+      </p>
+      {% endif %}
+      <fieldset>
+        <legend>Campaign Details</legend>
+        <table>
+          <tr>
+            <th><label for="name">Campaign name</label></th>
+            <td><input type="text" name="name" value="{{ name }}"/></td>
+          </tr>
+          <tr>
+            <th><label for="system">Game system</label></th>
+            <td><input type="text" name="system" value="{{ system }}"/></td>
+          </tr>
+          <tr>
+            <th><label for="description">Detailed description</label></th>
+            <td><textarea name="description">{{ description }}</textarea></td>
+        </table>
+      </fieldset>
+      <input type="submit" value="Create" />
+    </form>
 </div>
-{% endblock form %}
-
+{% endblock content %}
