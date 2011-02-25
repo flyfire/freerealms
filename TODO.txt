@@ -1,0 +1,9 @@
+marc
+----
+
+* favicon.ico
+* initialize page in __init__
+* factor out user object to page
+* CombinedPage
+* implement Campaign counter
+* add DOCUTILS
