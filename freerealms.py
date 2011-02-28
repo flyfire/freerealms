@@ -1,4 +1,3 @@
-import hashlib
 import os
 
 from google.appengine.dist import use_library
@@ -16,9 +15,11 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 
 import counter # TODO implement several counters
 import rest
-import version
 
+import webpage
+from webpage import action, application, PageProperty
 
+# TODO refactor to model.py
 class CalculatedProperty(db.Property):
     data_type = None
     
@@ -55,161 +56,113 @@ class Campaign(db.Model):
             value.extend(generate_keywords(user.nickname()))
         return value
 
-class ETag(object):
-    version_hash = hashlib.sha1()
-    version_hash.update('Version: %r\n' % (hex(version.HGVERSION),))
 
-    def __init__(self):
-        self._hash = self.version_hash.copy()
-            
-    def update(self, tag, s):
-        self._hash.update('%s: %r\n' % (tag, s))
+class FreeRealmsPage(webpage.Page):
+
+    def __call__(self, request):
+        state = super(FreeRealmsPage, self).__call__(request)
+        state.user = users.get_current_user()
+        return state
+
+    def update(self, instance, request):
+        instance.user_url = (users.create_logout_url(request.uri)
+            if instance.user else users.create_login_url(request.uri))
+        instance.here = request.relative_url(self.url(instance), to_application=True)
         
-    def __str__(self):
-        return self._hash.hexdigest()
-
-
-class PageRequestHandler(webapp.RequestHandler):
-
-    def __init__(self):
-        self.page = self.page_factory()
-        self.page.user = users.get_current_user()
-
-    def get(self):
-        if self.page.protected and not self.page.user:
-            self.redirect(users.create_login_url(self.request.uri))
-        etag = ETag()
-        for key, value in self.page.generate_key_values():
-            etag.update(key, value)
-        etag_str = str(etag)
-        self.response.headers['ETag'] = '"%s"' % (etag_str,)
-        if etag_str in self.request.if_none_match:
-            self.error(304)
-            return
-        self.page.update_form_data(self.request)
-        self.page.update_page_data(self.request)
-        self.page.render(self.response)
-        
-    def post(self):
-        for action in self.page.actions:
-            if action in self.request.arguments():
-                break
-        else:
-            self.error(405)
-            return
-        self.page.update_form_data(self.request)
-        redirection = self.page.handler(action, self.request)
-        if redirection:
-            self.error(303)
-            self.response.headers['Location'] = redirection
-            return
-        self.page.update_page_data(self.request)
-        self.page.render(self.response)
-
-
-class Page(object):
-    params = ()
-    protected = False
-
-    @classmethod
-    def requestHandler(cls):
-        return type("PageRequestHandler", (PageRequestHandler,), 
-            {'page_factory': cls})
-
-    def generate_key_values(self):
-        return ()
-        
-    def update_form_data(self, request):
-        pass
-
-    def update_page_data(self, request):
-        pass
-
-    def render(self, response):
-        path = os.path.join(os.path.dirname(__file__), self.template_file)
-        response.out.write(template.render(path, self.__dict__))
-
-
-class FreeRealmsPage(Page):
-
-    def update_page_data(self, request):
-        self.user_url = (users.create_logout_url(request.uri)
-            if self.user else users.create_login_url(request.uri))
-        
-    def generate_key_values(self):
-        user_id = self.user.user_id() if self.user else None
+    def generate_key_values(self, instance):
+        user_id = instance.user.user_id() if instance.user else None
         yield 'User', user_id
 
+    def render(self, instance, response):
+        path = os.path.join(os.path.dirname(__file__), self.template_file)
+        response.out.write(template.render(path, instance.__dict__))
 
+
+@application.page
 class MainPage(FreeRealmsPage):
-    params = ('keyword,', 'describe')
+
     template_file = 'index.html'
+    url_pattern = '/'
 
-    def update_form_data(self, request):
-        self.describe = request.get('describe')
-        self.keywords = request.get('keywords')
+    class Model(FreeRealmsPage.Model):
+        keywords = PageProperty(unicode, '')
+        describe = PageProperty(unicode, '')
 
-    def update_page_data(self, request):
-        super(MainPage, self).__init__()
+    def update_form_data(self, instance, request):
+        instance.form_describe = request.get('form_describe')
+        instance.form_keywords = request.get('form_keywords')
+
+    @action("search")
+    def search(self, instance, request):
+        instance.keywords = instance.form_keywords
+        return MainPage().absolute_url(instance, request)
+
+    def update(self, instance, request):
+        instance.add_url = AddPage().absolute_url(instance, request)
+
+        super(MainPage, self).update(instance, request)
         q = Campaign.all()
-        for word in self.keywords.split():
+        for word in instance.keywords.split():
             q.filter('keywords =', word.lower())
         q.order('-modified')
         q.order('__key__')
-        self.campaigns = q.fetch(20)
+        instance.campaigns = q.fetch(20)
 #        for campaign in self.campaigns:
-#            self.campaign.show_url = 
+#            self.campaign.show_url = self.absolute_url(instance, ... ?)
 #            self.campaign.hide_url = ''
 
-    def generate_key_values(self):
-        for key_value in super(MainPage, self).generate_key_values():
+    def generate_key_values(self, instance):
+        for key_value in super(MainPage, self).generate_key_values(instance):
             yield key_value
         yield 'Counter', counter.get_count()
 
 
+@application.page
 class AddPage(FreeRealmsPage):
 
     template_file = 'add.html'
-    protected = True
-    actions = ('add',)
+    url_pattern = '/add'
+   
+    class Model(FreeRealmsPage.Model):
+        keywords = PageProperty(unicode, '')
+        describe = PageProperty(unicode, '')
 
-    def update_form_data(self, request):
-        self.name = request.get('name')
-        self.system = request.get('system', 'Unspecified')
-        self.description = request.get('description')
+    def isProtected(self):
+        return True
 
-    def handler(self, action, request):
-        if not self.user:
-            self.error_msg = (
+    def update_form_data(self, instance, request):
+        instance.name = request.get('name')
+        instance.system = request.get('system', 'Unspecified')
+        instance.description = request.get('description')
+
+    @action('add')
+    def add(self, instance, request):
+        if not instance.user:
+            instance.error_msg = (
                 u"Not logged in. Please log in before you proceed.")
             return
-
-        campaign = Campaign(key_name=self.name,
-                            description=self.description,
-                            system=self.system,
-                            gamemasters=[self.user])
+        campaign = Campaign(key_name=instance.name,
+                            description=instance.description,
+                            system=instance.system,
+                            gamemasters=[instance.user])
         # FIXME Bad key error if name is empty
         def txn():
-            if Campaign.get_by_key_name(self.name):
+            # TODO factor out
+            if Campaign.get_by_key_name(instance.name):
                 return False
             campaign.put()
             return True
         if db.run_in_transaction(txn):
             counter.increment()
-            return request.relative_url('/') # FIXME
-        self.error_msg = (
-            u"There exists already a campaign by the name '%s'." % self.name)
+            return MainPage().absolute_url(instance, request)    # FIXME
+        instance.error_msg = (
+            u"There exists already a campaign by the name '%s'." % instance.name)
 
 
-
-application = webapp.WSGIApplication(
-                                     [('/', MainPage.requestHandler()),
-                                      ('/add.html', AddPage.requestHandler()),],
-                                     debug=True)
-
+wsgi_app = application.wsgi_app(debug=True)
 
 def main():
-    run_wsgi_app(application)
+    run_wsgi_app(wsgi_app)
 
 
 if __name__ == "__main__":

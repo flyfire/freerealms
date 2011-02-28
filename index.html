@@ -47,20 +47,21 @@
     </table>
     
 
-    <form class="criteria" action="/">
+    <form class="criteria" method="post" action="{{ here }}">
         <fieldset>
             <legend>Search Criteria</legend>
             <table>
                 <tr>
-                  <th><label for="keywords">Keywords</label></th>
-                  <td><input type="text" name="keywords" value="{{ keywords }}" />
+                  <th><label for="form_keywords">Keywords</label></th>
+                  <td><input type="text" name="form_keywords"
+                    value="{{ keywords }}" />
                 </tr>
                 <tr>
                   <th><label for="active">Only active games</label></th>
                   <td><input type="checkbox" name="active" value="active"></td>
             </table>
         </fieldset>
-        <input type="submit" value="Update campaign listing" />
+        <input type="submit" name="search" value="Update campaign listing" />
     </form>
 </div>
 {% endblock form %}
