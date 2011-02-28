@@ -46,7 +46,6 @@ class PageState(object):
     def __init__(self, model, request=None, **kwargs):
         self._model = model
         if request:
-            #print model
             for name in model:
                 setattr(self, name,
                         self._property(name).decode(*request.get_all(name)))
@@ -66,6 +65,7 @@ class PageState(object):
             if value:
                 query.append((name, value))
         return urllib.urlencode(query, doseq=True)               
+
 
 
 class PageModelClass(type):
@@ -129,9 +129,6 @@ class Page(object):
 
     Model = PageModel
     
-    def __init__(self, *args):
-        pass
-
     def isProtected(self):
         return False
 
@@ -168,7 +165,7 @@ class Page(object):
         pass
     
     def render(self, response):
-        raise NotImplementedError
+        return
 
 
 class PageRequestHandler(webapp.RequestHandler):
