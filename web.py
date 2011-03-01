@@ -129,7 +129,7 @@ class Page(Compound):
 class RequestHandler(webapp.RequestHandler):
 
     def __init__(self):
-        self.state = State(self.request)
+        self.state = State(self.request) # TODO request not defined here
 
     def get(self, *args):
         page = self.page_factory(*args)
