@@ -1,14 +1,77 @@
+# -*- coding: utf-8 -*-
 from google.appengine.ext import webapp
 
-# XXX This is what a controller will look like
-class Controller(object):
+class TestComponent(Component):
 
+    z = IntProperty()
+    y = IntProperty()
 
-    def etag(self):
+    x = IntProperty()
+    
+    z = Property("action", int, default)
+
+    @action("add", "x", "y", "z")
+    def add(x, y, z):
         pass
 
 
-    def render(self):
+
+class Property(object):
+
+    def __init__(self, type_, default=None):
+        self._type = type_
+        self._default = default
+
+    def __get__(self, instance, owner):
+        if not instance:
+            return self
+        properties = getattr(instance, '_properties', None)
+        if properties:
+            
+
+    def __set__(self, instance, value):
+        instance
+    
+    def _decode(self, variable, query, suffix=u''):
+        
+
+class ComponentClass(type):
+    """Metaclass for Component classes"""
+
+    pass
+
+
+class Component(object):
+    """A web component"""
+    
+    __metaclass__ = ComponentClass
+
+    def _initialize(self, request)
+        for argument in request.arguments():
+            if len(argument) > 1 and argument[0] == u'_':
+                self._set(argument[1], request.get_all(argument))
+
+    def _set(key, query):
+        name, sep, suffix = key.partition(u'_')
+        prop = getattr(self.__class__, name, None)
+        if isinstance(prop, Property):
+            prop._decode(getattr(self, name), query, suffix)
+
+class MyComponent(object):
+
+    counter = Property(int, 0)
+    sub_component = ComponentProperty()
+
+
+# ------> Eine Form löst eine Aktion aus. An dieser sind Parameter gebunden;
+
+    @action
+    def inc(self, **kwargs):
+        pass
+
+
+    def inc(self, **kwargs):
+
         pass
 
 
@@ -57,25 +120,65 @@ class _RequestHandler(webapp.RequestHandler):
         self.action = self.request.get_range('action', 0, len(self.actions) - 1,
                                              None)
 
+
+
+class RequestHandler(webapp.RequestHandler):
+
+
+    def get(*args):
+        state = self.application.component()
+
+        for argument in self.request.arguments():
+            while True:
+                prefix, sep, suffix = argument.partition(u'_')
+                
+
+        state._initialize(self.request)
+        app = self.application()
+        app.initialize(state)
+        etag = app.etag()
+        if etag:
+            pass # TODO
+        app.render(self.response.out)
+
+    def post(*args):
+        # TODO handle action
+        pass
+
+    def action(state):
+        pass
+
+    ?action=3&param1=...&param2=...
+
+    _keyword=...&_y=...&_z=...&_t=555&x_y=3&...&_=goto_field&param1=...&param2=...&param3=...
+
 class Application(object):
 
-    def __init__(self, controller):
-        self.controller = controller
-        self._url_mapping = [('/', self._request_handler_factory())]
-        self._actions = []
+    def initialize(self, state):
+        self.state = state
 
-    def _request_handler_factory(action=None):
-        request_handler = type('RequestHandler', (_RequestHandler,), {
-            'controller' : self._controller,
-            'actions' : self._actions,
-            'action' : action })
-        return request_handler
+    def etag(self):
+        return None
 
-    def add_action(self, action):
-        self._actions.append(action)
-   
-    def add_route(self, url_path, action):
-        self._routes.append((url_path, self._request_handler_factory(action)))
+    def render(self, out):
+        pass
 
-    def wsgi_app(debug=False):
-        return webapp.WSGIApplication(self.url_mapping, debug)
+
+class MyApplication(object):
+
+    component = MyComponent
+
+    def etag(self, component):
+        return None
+
+    def render(self, component):
+        return u'<!doctype html>'
+
+
+def request_handler(application):
+    return type('RequestHandler', (RequestHandler,), {
+        'application' : application})
+
+
+def wsgi_app(application, debug=False):
+    return webapp.WSGIApplication(('/', request_handler(application)), debug)
