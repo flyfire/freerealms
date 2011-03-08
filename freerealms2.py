@@ -7,10 +7,9 @@ class MyPage(web.Page):
     def render(self, out):
         out.write('<!doctype html>\n')
 
-    def info_page(self):
-        return InfoPage()
-
-    subpages = {'info': info_page}
+    @web.subpage('info')
+    def info_page(self, key):
+        return InfoPage(self, key)
 
 
 class InfoPage(web.Page):
