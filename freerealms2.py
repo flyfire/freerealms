@@ -1,27 +1,31 @@
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-import web2 as web
+import web
 
-application = web.Application()
+class MyPage(web.Page):
 
-class MainPage(web.HTMLPage):
+    def render(self, out):
+        out.write('<!doctype html>\n')
 
-    def title(self):
-        return u'Free Realms'
+    def info_page(self):
+        return InfoPage()
 
-    def setup(self):
-        super(MainPage, self).setup()
-        self.body.append(web.Heading(u'Free Realms'))
-
-
-@application.handler('/')
-class MainController(web.PageController):
-
-    def view(self):
-        return MainPage(self)
+    subpages = {'info': info_page}
 
 
-wsgi_app = application.wsgi_app(debug=True)
+class InfoPage(web.Page):
+
+    def render(self, out):
+        out.write('info')
+
+
+class MyApplication(web.Application):
+
+    def get_root(self):
+        return MyPage()
+
+
+wsgi_app = MyApplication.wsgi_app(debug=True)
 
 
 def main():
