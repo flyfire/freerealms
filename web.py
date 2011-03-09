@@ -1,13 +1,13 @@
+from copy import copy
 import functools
-import xml.sax.saxutils
+import urllib
+from xml.etree import ElementTree
 
 from google.appengine.ext import webapp
 
-
-# TODO subpages <-> actions <-> states <-> properties als Decorators!
-# response: relative_url for _url
-# howto tag
-# http://stackoverflow.com/questions/1980380/how-to-render-a-doctype-with-pythons-xml-dom-minidom
+# TODO url builder
+# TODO actions <-> als Decorators!
+# TODO response: relative_url for _url
 
 class _NotFoundException(Exception):
     pass
@@ -16,14 +16,13 @@ class _NotFoundException(Exception):
 class _RequestHandler(webapp.RequestHandler):
 
     def get(self, path):
-        app = self.application()
+        app = self.application(self.request)
         try:
             page = app._get_page(path)
         except _NotFoundException:
             self.error(404)
             return
-        app._initialize_from_dict(self.request)
-        page.initialize(app)
+        app._initialize_page(page, self.request)
         etag = page.etag()
         if etag:
             h = hashlib.sha1()
@@ -33,10 +32,10 @@ class _RequestHandler(webapp.RequestHandler):
             if hexdigest in self.request.if_none_match:
                 self.error(304)
                 return
-        page.render(self.response.out)
+        page._render(self.response.out)
 
     def post(self, path):
-        app = self.application()
+        app = self.application(self.request)
         path, sep, action = path.rpartition('/')
         if not action:
             self.error(405)
@@ -46,17 +45,19 @@ class _RequestHandler(webapp.RequestHandler):
         except _NotFoundException:
             self.error(404)
             return
-        handler = page.actions.get(action)
-        if not handler:
+        app._initialize_page(page, self.request)
+        key = page.actions.get(action)
+        if not key:
             self.error(405)
             return
         # TODO update form data!!!
-        redirection = handler(page)
+        # TODO 
+        redirection = key(page) + form_data # TODO
         if redirection:
             self.error(303)
             self.response.headers['Location'] = redirection
             return
-        page.render(self.response.out)
+        page._render(self.response.out)
 
 
 class _SubPage(object):
@@ -69,10 +70,44 @@ class _SubPage(object):
         return self.func(args, kwargs)
 
 
+class _Action(object):
+
+    def __init__(self, key, func, *properties):
+        self.key = key
+        self.func = func
+        self.properties = properties
+
+    def __get__(self, instance, owner):
+        if not instance:
+            return self
+        @functools.wraps(self.func)
+        def wrapper():
+            app = instance.application
+            url = app._url(instance, action=self.key)
+            return Form(url)
+        return wrapper
+
+    def __call__(self, *args, **kwargs):
+        return self.func(args, kwargs)
+
+
 def subpage(key):
     def decorator(func):
         return functools.update_wrapper(_SubPage(key, func), func)
     return decorator
+
+def action(key, *properties):
+    def decorator(func):
+        return functools.update_wrapper(_Action(key, func, *properties), func)
+    return decorator
+
+def link(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        app = copy(self.application)
+        page = func(self, app, **kwargs)
+        return Link(app._url(page), *args)
+    return wrapper
 
 
 class Property(object):
@@ -83,10 +118,17 @@ class Property(object):
     def __get__(self, instance, owner):
         if not instance:
             return self
-        return instance._get_property_value(self.key)
+        try:
+            return instance._property_values[self.key]
+        except (KeyError, AttributeError):
+            return self.decode(u'')
 
     def __set__(self, instance, value):
-        instance._set_property_value(self.key, value)
+        try:
+            values = instance._property_values
+        except AttributeError:
+            values = instance._property_values = {}
+        values[self.key] = value
 
     def decode(self, string):
         return None
@@ -106,17 +148,24 @@ class IntProperty(Property):
     def encode(self, value):
         if value:
             return str(value)
-        else
+        else:
             return u''
 
+class StringProperty(Property):
 
-class _ApplicationMeta(type):
+    def decode(self, string):
+        return string
 
+    def encode(self, value):
+        return value
+
+class _Propertied(type):
+    
     def __init__(cls, name, bases, dct):
-        super(_ApplicationMeta, cls).__init__(name, bases, dct)
+        super(_Propertied, cls).__init__(name, bases, dct)
         cls._properties = {}
         for base in bases:
-            if isinstance(base, _ApplicationMeta):
+            if isinstance(base, _Propertied):
                 cls._properties.update(base._properties)
         for name, value in dct.items():
             if isinstance(value, Property):
@@ -125,7 +174,11 @@ class _ApplicationMeta(type):
 
 class Application(object):
 
-    __metaclass__ = _ApplicationMeta
+    __metaclass__ = _Propertied
+
+    def __init__(self, request):
+        for key, prop in self._properties.items():
+            prop.__set__(self, prop.decode(request.get(key)))
 
     @classmethod
     def wsgi_app(cls, debug=False):
@@ -133,39 +186,31 @@ class Application(object):
             'application' : cls })
         return webapp.WSGIApplication([(r'/(.*)', request_handler)], debug)
 
-    def _url(self, page):
-        path = self._get_path(page)
-        query_string = self._query_string
-        return '%s?%s' % (path, query_string) if query_string else path
+    def _url(self, page, action=u''):
+        prefix = self._get_path(page)
+        path = prefix + ('/' if prefix and action else '') + action
+        query_string = self._query_string(page)
+        # XXX Use relative_url from webob.
+        return '/%s?%s' % (path, query_string) if query_string else '/' + path
 
-    def _get_property_value(self, key):
-        try:
-            return self._property_values[key]
-        except AttributeError, KeyError:
-            return self._properties[key].decode(u'')    
+    def _initialize_page(self, page, request):
+        page.application = self
+        for key, prop in page._properties.items():
+            prop.__set__(page, prop.decode(request.get(key)))
+        page.initialize()
 
-    def _set_property_value(self, key, value):
-        try:
-            values = self._property_values
-        except AttributeError
-            self._property_values = values = {}
-        values[key] = value
-
-    def _initialize_from_dict(self, data):
-        for key, prop in self._properties.items():
-            prop.__set__(self, prop.decode(data.get(key)))
-
-    def _initialize_from_app(self, app):
-        for key, prop in self._properties.items():
-            try:
-                prop.__set__(self, app._get_property_value(key))
-            except KeyError:
-                pass
-
-    def _query_string(self):
-        query = [(name, prop.encode(prop.__get__(self, self.__class__)))
-                 for name, prop in sorted(self._properties.items())]
-        return urllib.urlencode(query)
+    def _query_string(self, page=None):
+        app_props = [
+            (name, encoded) for name, encoded in (
+                (name, prop.encode(prop.__get__(self, self.__class__)))
+                for name, prop in self._properties.items())
+            if encoded]
+        page_props = [
+            (name, encoded) for name, encoded in (
+                (name, prop.encode(prop.__get__(page, page.__class__)))
+                for name, prop in page._properties.items())
+            if encoded] if page else []
+        return urllib.urlencode(sorted(app_props + page_props))
             
     def get_root(self):
         return None
@@ -182,40 +227,44 @@ class Application(object):
 
     def _get_path(self, page):
         path = ''
+        sep = ''
         while page._parent:
-            path = page._key + '/' + path
+            path = page._key + sep + path
+            sep = '/'
             page = page._parent
         return path
 
 
-class _PageMeta(type):
+class _PageMeta(_Propertied):
 
     def __init__(cls, name, bases, dct):
         super(_PageMeta, cls).__init__(name, bases, dct)
         cls._subpages = {}
+        cls._actions = {}
         for base in bases:
             if isinstance(base, _PageMeta):
                 cls._subpages.update(base._subpages)
+                cls._actions.update(base._actions)
         for name, value in dct.items():
             if isinstance(value, _SubPage):
                 cls._subpages[value.key] = value.func
+            if isinstance(value, _Action):
+                cls._actions[value.key] = value
 
 
 class Page(object):
 
     __metaclass__ = _PageMeta
-    
-    parameters = ()
 
     def __init__(self, parent=None, key=''):
         self._parent = parent
         self._key = key
 
-    def initialize(self, application):
-        self.application = application 
+    def initialize(self):
+        return
 
-    def _url(self):
-        return self.application._url(self)
+    def _url(self, page):
+        return self.application._url(page)
 
     def get(self, key):
         page = self._subpages.get(key)
@@ -223,106 +272,124 @@ class Page(object):
             return None
         return page(self, key)
 
+    def copy(self):
+        return copy(self)
+
     def etag(self):
         return None
 
-    def get_html(self):
-        return HTML()
+    def _render(self, out):
+        tb = ElementTree.TreeBuilder()
+        self.get_document().render(tb)
+        document = tb.close()
+        tree = ElementTree.ElementTree(document)
+        out.write('<!doctype html>\n')
+        tree.write(out, encoding='utf-8')
 
-
-class _Tag(object):
-
-    def __init__(self, name, **attributes):
-        self.name = name
-        self.attributes = attributes
-
-class _HTMLWriter(object):
-
-    def __init__(self, out, indent=2, level=0):
-        self._out = out
-        self._level = level
-        self._indent = indent
-        self._newline = True
-
-    def write(self, s):
-        if self._newline:
-            self._out.write(' ' * (self._indent * self._level))
-            self._newline = False
-        self._out.write(s)
-
-    def writeln(self, s=u''):
-        self.write('%s\n' % s)
-        self._newline = True
-
-    def indent(self):
-        self._level += 1
-
-    def dedent(self):
-        self._level -= 1
-
-    def content(self, s):
-        self.write(cgi.escape(s))
-
-    def emptytag(self, tag):
-        self.starttag(self, tag, _empty=True)
-
-    def starttag(self, tag, _empty=False):
-        self.write('<%s' % tag.name)
-        for attribute, value in tag.attributes:
-            self.write(' %s=%s' % (attribute, saxutils.quoteattr(value))
-        self.write(' />' if empty else '>')
-
-    def endtag(self, tag):
-        self.write('</%s>' % name)
-
-    @contextmanager
-    def block(self, tag):
-        self.starttag(tag)
-        self.writeln()
-        self.indent()
-        yield
-        if not self._newline:
-            self.writeln()
-        self.dedent()
-        self.endtag(tag)
-        self.writeln()
-
-    @contextmanager
-    def inline(self, tag):
-        self.starttag(tag)
-        yield
-        self.endtag(tag)
-
-
-class HTML(object):
-
-    def __init__(self):
-        self.title = u''
-        self.body = None
-
-    def render(self, writer):
-        writer.writeln('<!doctype html>')
-        with writer.block(_Tag('html')):
-            with writer.block(_Tag('head'))):
-                with writer.inline(_Tag('title')):
-                    writer.content(self.title.encode('utf-8'))
-            with writer.block(_Tag('body')):
-                if self.body:
-                    self.body.render(writer)
+    def get_document(self):
+        return Document()
 
 
 class Element(object):
+
+    def render(self, tb):
+        return
+
+class InlineElement(Element):
+
     pass
 
-class Link(Element):
 
-    def __init__(self, page):
-        self._page = page
-        self.content = None
+class Document(Element):
 
-    def render(self, writer):
-        url = self._page._url()
-        with writer.inline(_Tag('a', href=url)):
-            if self.content:
-                self.content.render(writer)
+    def __init__(self, title=u''):
+        self.title = title
+        self.body = []
 
+    def render(self, tb):
+        tb.start('html', {})
+        tb.start('head', {})
+        tb.start('title', {})
+        tb.data(self.title)
+        tb.end('title')
+        tb.end('head')
+        tb.start('body', {})
+        for element in self.body:
+            element.render(tb)
+        tb.end('body')
+        tb.end('html')
+
+
+class Inline(Element):
+
+    def __init__(self, *args):
+        self._elements = []
+        for arg in args:
+            self.append(arg)
+
+    def append(self, data):
+        if isinstance(data, basestring):
+            self._elements.append(Text(data))
+        elif isinstance(data, InlineElement):
+            self._elements.append(data)
+        else:
+            raise TypeError
+
+    def render(self, tb):
+        for element in self._elements:
+            element.render(tb)
+
+class Heading(Inline):
+
+    def __init__(self, *args, **kwargs):
+        super(Heading, self).__init__(*args)
+        self._level = kwargs.get('level', 1)
+
+    def render(self, tb):
+        tag = 'h%d' % self._level
+        tb.start(tag, {})
+        super(Heading, self).render(tb)
+        tb.end(tag)
+
+
+class Link(Inline, InlineElement):
+
+    def __init__(self, href, *args):
+        super(Link, self).__init__(*args)
+        self._href = href
+        
+    def render(self, tb):
+        tb.start('a', { 'href' : self._href })
+        super(Link, self).render(tb)
+        tb.end('a')
+
+
+class Text(InlineElement):
+
+    def __init__(self, text):
+        self._text = text
+
+    def render(self, tb):
+        tb.data(self._text)
+
+class Form(Element):
+
+    def __init__(self, action):
+        self._action = action
+        self.body = []
+
+    def render(self, tb):
+        tb.start('form', { 'method': 'post', 'action' : self._action })
+        for element in self.body:
+            element.render(tb)
+        tb.end('form')
+
+class Paragraph(Inline):
+
+    def __init__(self, *args):
+        super(Paragraph, self).__init__(*args)
+
+    def render(self, tb):
+        tb.start('p', {})
+        super(Paragraph, self).render(tb)
+        tb.end('p')
