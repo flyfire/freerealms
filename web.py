@@ -36,23 +36,26 @@ class _RequestHandler(webapp.RequestHandler):
 
     def post(self, path):
         app = self.application(self.request)
-        path, sep, action = path.rpartition('/')
+        path, sep, action_key = path.rpartition('/')
         if not action:
             self.error(405)
             return
         try:
-            page = app._get_page(path + sep)
+            page = app._get_page(path)
         except _NotFoundException:
             self.error(404)
             return
         app._initialize_page(page, self.request)
-        key = page.actions.get(action)
-        if not key:
+        handler = page._actions.get(action)
+        if not handler:
             self.error(405)
             return
         # TODO update form data!!!
-        # TODO 
-        redirection = key(page) + form_data # TODO
+        # TODO
+        args = []
+        for prop in handler.property:
+            args.append(prop.decode(self.request.get(prop.key)))
+        redirection = handler(page, *args) # TODO
         if redirection:
             self.error(303)
             self.response.headers['Location'] = redirection
@@ -67,7 +70,7 @@ class _SubPage(object):
         self.func = func
     
     def __call__(self, *args, **kwargs):
-        return self.func(args, kwargs)
+        return self.func(*args, **kwargs)
 
 
 class _Action(object):
@@ -88,7 +91,7 @@ class _Action(object):
         return wrapper
 
     def __call__(self, *args, **kwargs):
-        return self.func(args, kwargs)
+        return self.func(*args, **kwargs)
 
 
 def subpage(key):
@@ -188,10 +191,10 @@ class Application(object):
 
     def _url(self, page, action=u''):
         prefix = self._get_path(page)
-        path = prefix + ('/' if prefix and action else '') + action
+        path = prefix + ('/' if prefix != '/' and action else '') + action
         query_string = self._query_string(page)
         # XXX Use relative_url from webob.
-        return '/%s?%s' % (path, query_string) if query_string else '/' + path
+        return '%s?%s' % (path, query_string) if query_string else '/' + path
 
     def _initialize_page(self, page, request):
         page.application = self
@@ -216,22 +219,24 @@ class Application(object):
         return None
 
     def _get_page(self, path):
+        segments = path.split('/')
         page = self.get_root()
-        while True:
+        if not page:
+            raise _NotFoundException()
+        for segment in path.split('/'):
+            if not segment:
+                continue
+            page = page.get(segment)
             if not page:
                 raise _NotFoundException()
-            if not path:
-                return page
-            segment, sep, path = path.partition('/')
-            page = page.get(segment)
-
+        return page
+        
     def _get_path(self, page):
         path = ''
-        sep = ''
         while page._parent:
-            path = page._key + sep + path
-            sep = '/'
+            path = '/' + page._key + path
             page = page._parent
+        path = path or '/'
         return path
 
 
@@ -376,13 +381,34 @@ class Form(Element):
 
     def __init__(self, action):
         self._action = action
-        self.body = []
+        self._body = []
+
+    def append(self, child):
+        self._body.append(child)
 
     def render(self, tb):
-        tb.start('form', { 'method': 'post', 'action' : self._action })
-        for element in self.body:
+        tb.start('form', { 'method' : 'post', 'action' : self._action })
+        for element in self._body:
             element.render(tb)
         tb.end('form')
+
+class TextInput(InlineElement):
+
+    def __init__(self, value=u''):
+        self._value = value
+    
+    def render(self, tb):
+        tb.start('input', { 'type' : 'text' })
+        tb.end('input')
+
+class Submit(InlineElement):
+
+    def __init__(self, value=u''):
+        self._value = value
+    
+    def render(self, tb):
+        tb.start('input', { 'type' : 'submit' })
+        tb.end('input')
 
 class Paragraph(Inline):
 

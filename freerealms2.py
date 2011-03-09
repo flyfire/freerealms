@@ -19,6 +19,8 @@ class MyPage(web.Page):
         document.body.append(web.Paragraph(self.info_link('click me!')))
         document.body.append(web.Paragraph(self.count_link('COUNT!')))
         form = self.action()
+        form.append(web.TextInput())
+        form.append(web.Submit('Button'))
         document.body.append(form)
         return document
 
@@ -41,6 +43,7 @@ class MyPage(web.Page):
 
     @web.action('handler', web.StringProperty('name'))
     def action(self, name):
+        print repr(self)
         if not name:
             self.error = u'Text missing!!!'
             return
