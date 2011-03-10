@@ -3,11 +3,12 @@ import functools
 import urllib
 from xml.etree import ElementTree
 
+from google.appengine.api import users
 from google.appengine.ext import webapp
 
-# TODO url builder
 # TODO actions <-> als Decorators!
 # TODO response: relative_url for _url
+# TODO easy syntax for inline elements (string templating?)
 
 class _NotFoundException(Exception):
     pass
@@ -32,6 +33,7 @@ class _RequestHandler(webapp.RequestHandler):
             if hexdigest in self.request.if_none_match:
                 self.error(304)
                 return
+        page.update()
         page._render(self.response.out)
 
     def post(self, path):
@@ -182,6 +184,7 @@ class Application(object):
     def __init__(self, request):
         for key, prop in self._properties.items():
             prop.__set__(self, prop.decode(request.get(key)))
+        self.request_uri = request.uri
 
     @classmethod
     def wsgi_app(cls, debug=False):
@@ -261,12 +264,15 @@ class Page(object):
 
     __metaclass__ = _PageMeta
 
+    title = u''
+
     def __init__(self, parent=None, key=''):
         self._parent = parent
         self._key = key
+        self.body = BlockPanel()
 
     def initialize(self):
-        return
+        self.user = users.get_current_user()
 
     def _url(self, page):
         return self.application._url(page)
@@ -285,16 +291,189 @@ class Page(object):
 
     def _render(self, out):
         tb = ElementTree.TreeBuilder()
-        self.get_document().render(tb)
+        tb.start('html', {})
+        tb.start('head', {})
+        tb.start('title', {})
+        tb.data(self.title)
+        tb.end('title')
+        tb.end('head')
+        tb.start('body', {})
+        self.body.render(tb)
+        tb.end('body')
+        tb.end('html')
         document = tb.close()
         tree = ElementTree.ElementTree(document)
         out.write('<!doctype html>\n')
         tree.write(out, encoding='utf-8')
 
-    def get_document(self):
-        return Document()
+    def login_link(self, content=None):
+        return Link(users.create_login_url(self.application.request_uri),
+                    content)
+
+    def logout_link(self, content=None):
+        return Link(users.create_logout_url(self.application.request_uri),
+                    content)
+
+    def update(self):
+        return
 
 
+class ComplexPanel(object):
+
+    def __init__(self):
+        self._children = []
+
+    def append(self, *children):
+        for child in children:
+            self._children.append(child)
+
+    def render(self, tb):
+        for child in self._children:
+            child.render(tb)
+
+    def __iter__(self):
+        return iter(self._children)
+
+class BlockPanel(ComplexPanel):
+    pass
+
+class FlowPanel(ComplexPanel):
+    pass
+
+class DivPanel(FlowPanel):
+
+    def render(self, tb):
+        tb.start('div', {})
+        super(DivPanel, self).render(tb)
+        tb.end('div')
+
+class Text(object):
+
+    def __init__(self, text):
+        self._text = text
+
+    def render(self, tb):
+        tb.data(self._text)
+
+class InlinePanel(ComplexPanel):
+
+    def __init__(self, content=None):
+        super(InlinePanel, self).__init__()
+        if content:
+            self.append(content)
+
+    def append(self, *children):
+        for child in children:
+            if isinstance(child, basestring):
+                super(InlinePanel, self).append(Text(child))
+            elif isinstance(child, Template):
+                # TODO
+                pass
+            else:
+                super(InlinePanel, self).append(child)
+
+
+class Template(InlinePanel):
+
+    _delimited = '$'
+    _idpattern = r'[_a-z][_a-z0-9]*'
+    _pattern = re.compile(
+        r"""
+%(delim)s(?:
+    (?P<escaped>%(delim)s) |   # Escape sequence of two delimiters
+    (?P<named>%(id)s)      |   # delimiter and a Python identifier
+    {(?P<braced>%(id)s)}   |   # delimiter and a braced identifier
+    (?P<invalid>)              # Other ill-formed delimiter exprs
+)""" % { 'delim' : re.escape(_delimiter), 'id' : _idpattern },
+        re.IGNORECASE | re.VERBOSE)
+
+    def __init__(self, template_string, **kwargs):
+        super(Template, self).__init__()
+        
+        self._template_string = ''
+        self._kwargs = kwargs
+
+
+class Link(InlinePanel):
+
+    def __init__(self, href, content=None):
+        super(Link, self).__init__(content)
+        self._href = href
+        
+    def render(self, tb):
+        tb.start('a', { 'href' : self._href })
+        super(Link, self).render(tb)
+        tb.end('a')
+
+
+class Email(Link):
+
+    _safe = '@'
+
+    def __init__(self, address, subject=None, content=None):
+        href = 'mailto:%s' % urllib.quote(address, self._safe)
+        if subject:
+            href = '%s?subject=%s' % (href, urllib.quote(subject, self._safe))
+        super(Email, self).__init__(href, content)
+
+class Heading(InlinePanel):
+
+    def __init__(self, content=None, level=1):
+        super(Heading, self).__init__(content)
+        self._level = level
+
+    def render(self, tb):
+        tag = 'h%d' % self._level
+        tb.start(tag, {})
+        super(Heading, self).render(tb)
+        tb.end(tag)
+
+class Paragraph(InlinePanel):
+
+    def render(self, tb):
+        tb.start('p', {})
+        super(Paragraph, self).render(tb)
+        tb.end('p')
+
+class List(ComplexPanel):
+
+    def render(self, tb):
+        tb.start('ul', {})
+        for child in self:
+            tb.start('li', {})
+            child.render(tb)
+            tb.end('li')
+        tb.end('ul')
+
+
+class Section(DivPanel):
+
+    def __init__(self, heading):
+        super(Section, self).__init__()
+        self.append(Heading(heading, level=2))
+
+
+class SubSection(DivPanel):
+
+    def __init__(self, heading):
+        super(SubSection, self).__init__()
+        self.append(Heading(heading, level=3))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
 class Element(object):
 
     def render(self, tb):
@@ -305,24 +484,18 @@ class InlineElement(Element):
     pass
 
 
-class Document(Element):
+class Flow(Element):
 
-    def __init__(self, title=u''):
-        self.title = title
-        self.body = []
+    def __init__(self):
+        self._elements = []
+
+    def append(self, element):
+        self._elements.append(element)
 
     def render(self, tb):
-        tb.start('html', {})
-        tb.start('head', {})
-        tb.start('title', {})
-        tb.data(self.title)
-        tb.end('title')
-        tb.end('head')
-        tb.start('body', {})
-        for element in self.body:
+        for element in self._elements:
             element.render(tb)
-        tb.end('body')
-        tb.end('html')
+
 
 
 class Inline(Element):
@@ -344,38 +517,13 @@ class Inline(Element):
         for element in self._elements:
             element.render(tb)
 
-class Heading(Inline):
-
-    def __init__(self, *args, **kwargs):
-        super(Heading, self).__init__(*args)
-        self._level = kwargs.get('level', 1)
+class Div(Flow):
 
     def render(self, tb):
-        tag = 'h%d' % self._level
-        tb.start(tag, {})
-        super(Heading, self).render(tb)
-        tb.end(tag)
+        tb.start('div', {})
+        super(Div, self).render(tb)
+        tb.end('div')
 
-
-class Link(Inline, InlineElement):
-
-    def __init__(self, href, *args):
-        super(Link, self).__init__(*args)
-        self._href = href
-        
-    def render(self, tb):
-        tb.start('a', { 'href' : self._href })
-        super(Link, self).render(tb)
-        tb.end('a')
-
-
-class Text(InlineElement):
-
-    def __init__(self, text):
-        self._text = text
-
-    def render(self, tb):
-        tb.data(self._text)
 
 class Form(Element):
 
@@ -409,13 +557,3 @@ class Submit(InlineElement):
     def render(self, tb):
         tb.start('input', { 'type' : 'submit' })
         tb.end('input')
-
-class Paragraph(Inline):
-
-    def __init__(self, *args):
-        super(Paragraph, self).__init__(*args)
-
-    def render(self, tb):
-        tb.start('p', {})
-        super(Paragraph, self).render(tb)
-        tb.end('p')

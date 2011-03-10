@@ -1,28 +1,80 @@
+# -*- coding: utf-8 -*-
+from datetime import date
+
+#from google.appengine.api import users
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 import web
 
-class MyPage(web.Page):
 
-    count = web.IntProperty('count')
+# TODO: User box as widget... how to?
 
-    def initialize(self):
-        self.error = u''
+class FreeRealmsApplication(web.Application):
 
-    def get_document(self):
-        document = web.Document('Main Page')
-        heading = web.Heading('Welcome!', level=1)
-        document.body.append(heading)
-        document.body.append(web.Paragraph(web.Text(self.error)))
-        document.body.append(web.Paragraph(
-            web.Text('Count is %d.' % self.count)))
-        document.body.append(web.Paragraph(self.info_link('click me!')))
-        document.body.append(web.Paragraph(self.count_link('COUNT!')))
-        form = self.action()
-        form.append(web.TextInput())
-        form.append(web.Submit('Button'))
-        document.body.append(form)
-        return document
+    def get_root(self):
+        return MainPage()
+
+class UserWidget(web.List):
+
+    def __init__(self, page):
+        super(UserWidget, self).__init__()
+        if page.user:
+            self.append(web.Text('Welcome, %s!' % page.user.nickname()))
+            self.append(page.logout_link(u'Logout'))
+        else:
+            self.append(web.Text('You are currently not logged in.'))
+            self.append(page.login_link(u'Login'))
+
+class FreeRealmsPage(web.Page):
+
+    title = u'Free Realms'
+
+    def content(self):
+        while False:
+            yield
+
+    def header(self):
+        header = web.DivPanel()
+        header.append(web.Heading(self.title))
+        header.append(UserWidget(self))
+        return header
+
+    def footer(self):
+        year = date.today().year
+        footer = web.Paragraph()
+        email = web.Email('marc@nieper-wisskirchen.de', subject='Free Realms',
+                          content=u'Marc Nieper-Wißkirchen')
+        footer.append(u'Copyright © 2011–%d ' % year, email)
+        return footer
+
+    def update(self):
+        body = self.body
+        body.append(self.header())
+        for block in self.content():
+            body.append(block)
+        body.append(self.footer())
+
+
+class MainPage(FreeRealmsPage):
+
+    def welcome_article(self):
+        article = web.Section(u'Welcome to the Free Realms')
+        article.append(web.Paragraph(u'The Free Realms is a site dedicated to '
+                                      'play-by-post role-playing games.'))
+        section = web.SubSection(u'Create your own campaign')
+        paragraph = web.Paragraph()
+        paragraph.append(u'In the Free Realms you can easily create '
+                          'your own campaign. Just follow the link '
+                          'below. ',
+                         u'(Note that you will need to log in with a ',
+                         web.Link('https://www.google.com/accounts/',
+                                  u'Google Account'), u' first.)')
+        section.append(paragraph)
+        article.append(section)
+        return article
+                       
+    def content(self):
+        yield self.welcome_article()
 
     @web.link
     def count_link(self, application):
@@ -43,29 +95,12 @@ class MyPage(web.Page):
 
     @web.action('handler', web.StringProperty('name'))
     def action(self, name):
-        print repr(self)
         if not name:
             self.error = u'Text missing!!!'
             return
 
-class InfoPage(web.Page):
 
-    y = web.IntProperty('y')
-
-    def get_document(self):
-        document = web.Document('Info Page')
-        return document
-
-
-class MyApplication(web.Application):
-
-    x = web.IntProperty('x')
-
-    def get_root(self):
-        return MyPage()
-
-
-wsgi_app = MyApplication.wsgi_app(debug=True)
+wsgi_app = FreeRealmsApplication.wsgi_app(debug=True)
 
 
 def main():
@@ -74,5 +109,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
