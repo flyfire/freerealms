@@ -1,5 +1,6 @@
 from copy import copy
 import functools
+import re
 import urllib
 from xml.etree import ElementTree
 
@@ -8,7 +9,6 @@ from google.appengine.ext import webapp
 
 # TODO actions <-> als Decorators!
 # TODO response: relative_url for _url
-# TODO easy syntax for inline elements (string templating?)
 
 class _NotFoundException(Exception):
     pass
@@ -24,6 +24,9 @@ class _RequestHandler(webapp.RequestHandler):
             self.error(404)
             return
         app._initialize_page(page, self.request)
+        if page.protected() and not users.get_current_user():
+            self.redirect(users.create_login_url(self.request.uri))
+            return
         etag = page.etag()
         if etag:
             h = hashlib.sha1()
@@ -39,7 +42,7 @@ class _RequestHandler(webapp.RequestHandler):
     def post(self, path):
         app = self.application(self.request)
         path, sep, action_key = path.rpartition('/')
-        if not action:
+        if not action_key:
             self.error(405)
             return
         try:
@@ -48,20 +51,26 @@ class _RequestHandler(webapp.RequestHandler):
             self.error(404)
             return
         app._initialize_page(page, self.request)
-        handler = page._actions.get(action)
-        if not handler:
+        app._initialize_page(page, self.request)
+        if page.protected() and not users.get_current_user():
+            self.redirect(users.create_login_url(self.request.uri))
+            return
+        action = page._actions.get(action_key)
+        if not action:
             self.error(405)
             return
-        # TODO update form data!!!
-        # TODO
+        page._action = action_key
         args = []
-        for prop in handler.property:
-            args.append(prop.decode(self.request.get(prop.key)))
-        redirection = handler(page, *args) # TODO
+        for prop in action.properties:
+            value = prop.decode(self.request.get(prop.key))
+            page._form_values[prop.key] = value
+            args.append(value)
+        redirection = action(page, *args)
         if redirection:
             self.error(303)
             self.response.headers['Location'] = redirection
             return
+        page.update()
         page._render(self.response.out)
 
 
@@ -70,9 +79,33 @@ class _SubPage(object):
     def __init__(self, key, func):
         self.key = key
         self.func = func
-    
-    def __call__(self, *args, **kwargs):
-        return self.func(*args, **kwargs)
+
+    def __get__(self, instance, owner):
+        if not instance:
+            return self
+        @functools.wraps(self.func)
+        def wrapper(*args, **kwargs):
+            app = instance.application
+            page = self.func(instance, self.key, **kwargs)
+            return Link(app._url(page), *args)
+        return wrapper
+
+
+class _Form(object):
+
+    def __init__(self, page, action):
+        self.page = page
+        self.key = action.key
+
+    def form(self):
+        app = self.page.application
+        url = app._url(self.page, action=self.key)
+        return Form(url)
+
+    def get(self, name):
+        if not self.page._action == self.key:
+            return None
+        return self.page._form_values.get(name)
 
 
 class _Action(object):
@@ -85,12 +118,7 @@ class _Action(object):
     def __get__(self, instance, owner):
         if not instance:
             return self
-        @functools.wraps(self.func)
-        def wrapper():
-            app = instance.application
-            url = app._url(instance, action=self.key)
-            return Form(url)
-        return wrapper
+        return functools.update_wrapper(_Form(instance, self), self.func)
 
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
@@ -101,7 +129,12 @@ def subpage(key):
         return functools.update_wrapper(_SubPage(key, func), func)
     return decorator
 
-def action(key, *properties):
+def action(*properties):
+    if not properties or not isinstance(properties[0], basestring):
+        key = u'post'
+    else:
+        key = properties[0]
+        properties = properties[1:]
     def decorator(func):
         return functools.update_wrapper(_Action(key, func, *properties), func)
     return decorator
@@ -197,7 +230,7 @@ class Application(object):
         path = prefix + ('/' if prefix != '/' and action else '') + action
         query_string = self._query_string(page)
         # XXX Use relative_url from webob.
-        return '%s?%s' % (path, query_string) if query_string else '/' + path
+        return '%s?%s' % (path, query_string) if query_string else path
 
     def _initialize_page(self, page, request):
         page.application = self
@@ -236,8 +269,9 @@ class Application(object):
         
     def _get_path(self, page):
         path = ''
-        while page._parent:
-            path = '/' + page._key + path
+        while page:
+            if page._key:
+                path = '/' + page._key + path
             page = page._parent
         path = path or '/'
         return path
@@ -266,9 +300,11 @@ class Page(object):
 
     title = u''
 
-    def __init__(self, parent=None, key=''):
+    def __init__(self, parent=None, key=u''):
         self._parent = parent
         self._key = key
+        self._action = u''
+        self._form_values = {}
         self.body = BlockPanel()
 
     def initialize(self):
@@ -366,16 +402,13 @@ class InlinePanel(ComplexPanel):
         for child in children:
             if isinstance(child, basestring):
                 super(InlinePanel, self).append(Text(child))
-            elif isinstance(child, Template):
-                # TODO
-                pass
             else:
                 super(InlinePanel, self).append(child)
 
 
-class Template(InlinePanel):
+class Inline(InlinePanel):
 
-    _delimited = '$'
+    _delimiter = '$'
     _idpattern = r'[_a-z][_a-z0-9]*'
     _pattern = re.compile(
         r"""
@@ -388,11 +421,33 @@ class Template(InlinePanel):
         re.IGNORECASE | re.VERBOSE)
 
     def __init__(self, template_string, **kwargs):
-        super(Template, self).__init__()
-        
-        self._template_string = ''
-        self._kwargs = kwargs
-
+        super(Inline, self).__init__()
+        current = 0
+        for match in self._pattern.finditer(template_string):
+            start = match.start()
+            if start > current:
+                self.append(template_string[current:start])
+                named = match.group('named') or match.group('braced')
+                if named is not None:
+                    self.append(kwargs[named])
+                if match.group('escaped') is not None:
+                    self.append(self._delimiter)
+                if match.group('invalid') is not None:
+                    i = match.start('invalid')
+                    lines = self.template_string[:i].splitlines(True)
+                    if not lines:
+                        colno = 1
+                        lineno = 1
+                    else:
+                        colno = i - len(''.join(lines[:-1]))
+                        lineno = len(lines)
+                    raise ValueError(
+                        'Invalid placeholder in string: line %d, col %d' %
+                        (lineno, colno))                                                            
+            current = match.end()
+        tail = template_string[current:]
+        if tail:
+            self.append(tail)
 
 class Link(InlinePanel):
 
@@ -461,99 +516,40 @@ class SubSection(DivPanel):
 
 
 
+class Input(object):
 
+    def __init__(self, type_, name=None, value=None):
+        self._type = type_
+        self._name = name
+        self._value = value
 
-
-
-
-
-
-
-
-
-
-
+    def render(self, tb):
+        attributes = { 'type' : self._type }
+        if self._name:
+            attributes['name'] = self._name
+        if self._value:
+            attributes['value'] = self._value
+        tb.start('input', attributes)
+        tb.end('input')
         
-class Element(object):
+class TextInput(Input):
 
-    def render(self, tb):
-        return
-
-class InlineElement(Element):
-
-    pass
+    def __init__(self, name=None, value=None):
+        super(TextInput, self).__init__('text', name, value)
 
 
-class Flow(Element):
+class Submit(Input):
 
-    def __init__(self):
-        self._elements = []
+    def __init__(self, name=None, value=None):
+        super(Submit, self).__init__('submit', name, value)
 
-    def append(self, element):
-        self._elements.append(element)
-
-    def render(self, tb):
-        for element in self._elements:
-            element.render(tb)
-
-
-
-class Inline(Element):
-
-    def __init__(self, *args):
-        self._elements = []
-        for arg in args:
-            self.append(arg)
-
-    def append(self, data):
-        if isinstance(data, basestring):
-            self._elements.append(Text(data))
-        elif isinstance(data, InlineElement):
-            self._elements.append(data)
-        else:
-            raise TypeError
-
-    def render(self, tb):
-        for element in self._elements:
-            element.render(tb)
-
-class Div(Flow):
-
-    def render(self, tb):
-        tb.start('div', {})
-        super(Div, self).render(tb)
-        tb.end('div')
-
-
-class Form(Element):
+class Form(BlockPanel):
 
     def __init__(self, action):
+        super(Form, self).__init__()
         self._action = action
-        self._body = []
-
-    def append(self, child):
-        self._body.append(child)
 
     def render(self, tb):
         tb.start('form', { 'method' : 'post', 'action' : self._action })
-        for element in self._body:
-            element.render(tb)
+        super(Form, self).render(tb)
         tb.end('form')
-
-class TextInput(InlineElement):
-
-    def __init__(self, value=u''):
-        self._value = value
-    
-    def render(self, tb):
-        tb.start('input', { 'type' : 'text' })
-        tb.end('input')
-
-class Submit(InlineElement):
-
-    def __init__(self, value=u''):
-        self._value = value
-    
-    def render(self, tb):
-        tb.start('input', { 'type' : 'submit' })
-        tb.end('input')

@@ -58,29 +58,29 @@ class FreeRealmsPage(web.Page):
 class MainPage(FreeRealmsPage):
 
     def welcome_article(self):
+        account_link = web.Link(
+            'https://www.google.com/accounts/', u'Google Account')
         article = web.Section(u'Welcome to the Free Realms')
         article.append(web.Paragraph(u'The Free Realms is a site dedicated to '
                                       'play-by-post role-playing games.'))
         section = web.SubSection(u'Create your own campaign')
-        paragraph = web.Paragraph()
-        paragraph.append(u'In the Free Realms you can easily create '
-                          'your own campaign. Just follow the link '
-                          'below. ',
-                         u'(Note that you will need to log in with a ',
-                         web.Link('https://www.google.com/accounts/',
-                                  u'Google Account'), u' first.)')
-        section.append(paragraph)
+        section.append(web.Paragraph(web.Inline(
+            u'In the Free Realms you can easily create your own campaign. '
+            u'Just follow the link below. '
+            u'(Note that you will need to login in with a $account first.)',
+            account=account_link)))
+        buttons = web.List()
+        buttons.append(self.add_page('Create campaign'))
+        section.append(buttons)
         article.append(section)
         return article
                        
     def content(self):
         yield self.welcome_article()
 
-    @web.link
-    def count_link(self, application):
-        page = self.copy()
-        page.count += 1
-        return page
+    @web.subpage('add')
+    def add_page(self, key):
+        return AddPage(self, key)
 
     @web.link
     def info_link(self, application):
@@ -89,16 +89,27 @@ class MainPage(FreeRealmsPage):
         page.y = 12
         return page
 
-    @web.subpage('info')
-    def info_page(self, key):
-        return InfoPage(self, key)
-
     @web.action('handler', web.StringProperty('name'))
     def action(self, name):
         if not name:
             self.error = u'Text missing!!!'
             return
 
+
+class AddPage(FreeRealmsPage):
+
+    def protected(self):
+        return True
+
+    def content(self):
+        form = self.add_action.form()
+        form.append(web.TextInput('name', self.add_action.get('name')))
+        form.append(web.Submit(value=u'Create campaign'))
+        yield form
+
+    @web.action(web.StringProperty(u'name'))
+    def add_action(self, name):
+        return
 
 wsgi_app = FreeRealmsApplication.wsgi_app(debug=True)
 
