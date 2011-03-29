@@ -553,3 +553,14 @@ class Form(BlockPanel):
         tb.start('form', { 'method' : 'post', 'action' : self._action })
         super(Form, self).render(tb)
         tb.end('form')
+
+class Element(object):
+    pass
+
+class BlockElement(Element):
+    pass
+
+class Table(BlockElement):
+
+    def __init__(self):
+        self.caption = None

@@ -12,7 +12,7 @@ handlers:
 - url: /images
   static_dir: images
 - url: /.*
-  script: freerealms2.py
+  script: freerealms.py
 
 skip_files:
 - ^(.*/)?app\.yaml

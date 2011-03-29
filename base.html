@@ -6,22 +6,24 @@
 </head>
 <body>
     <div id="header">
-        <ul id="user" class="menu">
-            {% if nickname %}
-                <li class="user_info">Welcome,
-                    <span class="nickname">{{ user.nickname }}!</span></li>
-                <li><a href="{{ user_url }}">Logout</a></li>
-            {% else %}
-                <li class="user_info">You are currently not logged in.</li>
-                <li><a href="{{ user_url }}">Login</a></li>
-            {% endif %}
-        </ul>
         <h1>
             <a href="/">{% block heading %}Free Realms{% endblock %}</a>
             {% block subtitle %}{% endblock subtitle %}
         </h1>
+        <ul id="user" class="menu">
+            {% if user.nickname %}
+                <li class="user_info">Welcome,
+                    <span class="nickname">{{ user.nickname }}!</span></li>
+                <li><a href="{{ user.url }}">Logout</a></li>
+            {% else %}
+                <li class="user_info">You are currently not logged in.</li>
+                <li><a href="{{ user.url }}">Login</a></li>
+            {% endif %}
+        </ul>
     </div>
-    {% block content %}{% endblock %}
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
     <div id="footer">
         Copyright &copy; 2011&ndash;{% now "Y"%} 
         <a href="mailto:marc@nieper-wisskirchen.de?subject=Free%20Realms">Marc

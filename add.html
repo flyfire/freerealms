@@ -10,9 +10,9 @@
     </p>
 
     <form method="post">
-      {% if error_msg %}
+      {% if error %}
       <p class="error">
-        {{ error_msg }}
+        {{ error }}
       </p>
       {% endif %}
       <fieldset>
@@ -20,18 +20,18 @@
         <table>
           <tr>
             <th><label for="name">Campaign name</label></th>
-            <td><input type="text" name="name" value="{{ name }}"/></td>
+            <td><input type="text" name="name" value="{{ data.name }}"/></td>
           </tr>
           <tr>
             <th><label for="system">Game system</label></th>
-            <td><input type="text" name="system" value="{{ system }}"/></td>
+            <td><input type="text" name="system" value="{{ data.system }}"/></td>
           </tr>
           <tr>
             <th><label for="description">Detailed description</label></th>
-            <td><textarea name="description">{{ description }}</textarea></td>
+            <td><textarea name="description">{{ data.description }}</textarea></td>
         </table>
       </fieldset>
-      <input type="submit" name="add" value="Create" />
+      <input type="submit" value="Create" />
     </form>
 </div>
 {% endblock content %}
