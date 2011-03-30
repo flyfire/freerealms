@@ -1,5 +1,10 @@
 from google.appengine.api import users
 from google.appengine.ext import db
+from google.appengine.ext.db import BadKeyError
+
+import counter
+from error import ClientError
+
 
 class CalculatedProperty(db.Property):
     data_type = None
@@ -36,4 +41,40 @@ class Campaign(db.Model):
         for user in model_instance.gamemasters:
             value.extend(generate_keywords(user.nickname()))
         return value
+
+
+def get_campaign(name):
+    return Campaign.get_by_key_name(name)
+
+
+def find_campaigns(keywords):
+    q = Campaign.all()
+    for word in keywords.split():
+        q.filter('keywords =', word.lower())
+        q.order('-modified')
+        q.order('__key__')
+    return q.fetch(20)
+
+
+def create_campaign(name, description, system):
+    user = users.get_current_user()
+    if not user:
+        raise ClientError(u"Not logged in. Please log in before you proceed.")
+    try:  
+        campaign = Campaign(
+            key_name=name,
+            description=description,
+            system=system,
+            gamemasters=[user])
+    except BadKeyError:
+        raise ClientError(
+            u"'%s' is not a suitable campaign name." % name if name else
+            u"Campaign name missing. Please fill in a campaign name.")
+    def txn():
+        if Campaign.get_by_key_name(name):
+            raise ClientError(
+                u"There exists already a campaign by the name '%s'." % name)
+        campaign.put()
+    db.run_in_transaction(txn)
+    counter.increment('campaigns')
 

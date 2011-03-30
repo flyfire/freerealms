@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block subtitle %}
-&mdash; <span id="campaign">{{ name }}</span>
+&mdash; <span id="campaign">{{ campaign.key.name }}</span>
 {% endblock subtitle %}
 
+{% block content %}
+<div class="article">
+    <h2>Description</h2>
+    {{ campaign.key.name|restructuredtext }}
+</div>
+{% endblock content %}

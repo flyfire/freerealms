@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% load markup %}
 
 {% block content %}
 <div class="note">
     <h2>Information</h2>
-    <p>There are currently 1000 games hosted on this site.</p>
+    <p>There are currently {{ campaign_count }} games hosted on this site.</p>
 </div>
 
 <div class="article">
@@ -28,9 +27,26 @@
 </div>
 
 <div id="campaigns" class="endnote">
+    <form class="criteria" method="get" action="{{ here }}">
+        <fieldset>
+            <legend>Search Criteria</legend>
+            <table>
+                <tr>
+                  <th><label for="keywords">Keywords</label></th>
+                  <td><input type="text" name="keywords"
+                    value="{{ form.keywords }}" />
+                </tr>
+                <tr>
+                  <th><label for="active">Only active games</label></th>
+                  <td><input type="checkbox" name="active" value="active"></td>
+            </table>
+        </fieldset>
+        <input type="submit" value="Update campaign listing" />
+    </form>
+
     <h2>Browse Campaigns</h2>
 
-    <table class="results" cellspacing="0">
+    <table class="listing" cellspacing="0">
       <caption>Campaigns that fulfill your search criteria.</caption>
       <thead>
         <tr>
@@ -44,18 +60,8 @@
         <tr>
           <td>{{ campaign.key.name }}</td>
           <td>{{ campaign.system }}</td>
-          {% if campaign.key.name == describe %}
-          <td><a class="button" href="">Hide</a></td>
-          {% else %}
-          <td><a class="button" href="?describe={{ campaign.key.name|urlencode }}">Show</a></td>
-          {% endif %}
-        </tr>
-        <tr>
-          {% if campaign.key.name == describe %}
-          <td colspan="3">
-            {{ campaign.description|restructuredtext }}
-          </td>
-          {% endif %}
+          <td><a class="button"
+            href="campaigns/{{ campaign.key.name|urlquote }}">Show</a></td>
         </tr>
         {% endfor %}
         {% if not campaigns %}
@@ -70,24 +76,6 @@
         </tr>
       </tbody>
     </table>
-    
-
-    <form class="criteria" method="post" action="{{ here }}">
-        <fieldset>
-            <legend>Search Criteria</legend>
-            <table>
-                <tr>
-                  <th><label for="form_keywords">Keywords</label></th>
-                  <td><input type="text" name="form_keywords"
-                    value="{{ keywords }}" />
-                </tr>
-                <tr>
-                  <th><label for="active">Only active games</label></th>
-                  <td><input type="checkbox" name="active" value="active"></td>
-            </table>
-        </fieldset>
-        <input type="submit" name="search" value="Update campaign listing" />
-    </form>
 </div>
 {% endblock content %}
 

@@ -1,11 +1,9 @@
 marc
 ----
 
-* favicon.ico
-* initialize page in __init__
-* factor out user object to page
-* CombinedPage
 * implement Campaign counter
+* throw out unused sources
+* favicon.ico
 * add DOCUTILS
 
 * Licences für docutils & roman.py

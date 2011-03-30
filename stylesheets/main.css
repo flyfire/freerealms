@@ -23,6 +23,12 @@ body {
     padding-top: 0.5em;
     text-align: center;
     border-top: solid thin #000000;
+    clear: both;
+}
+
+#campaign {
+    font-style: italic;
+    font-size: smaller;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -60,6 +66,20 @@ textarea {
     height: 10em;
 }
 
+table.listing {
+    border-collapse: collapse;
+    margin: 0.5em;
+}
+
+table.listing th {
+    text-align: left;
+}
+
+table.listing td {
+    border-top: 1px solid silver;
+    border-bottom: 1px solid silver;
+}
+
 fieldset {
     padding: 0;
     border: none;
@@ -71,6 +91,10 @@ legend {
 
 fieldset > table th {
     text-align: left;
+}
+
+caption {
+    display: none;
 }
 
 ul.menu {
@@ -94,7 +118,7 @@ ul.menu li {
 
 .note {
     float: right;
-    max-width: 10em;
+    max-width: 9.5em;
     border-left: solid thin black;
     padding-left: 0.5em;
 }
@@ -115,3 +139,17 @@ ul.menu li {
 .endnote > h2 {
     margin: 0;
 }
+
+#campaigns > table {
+    width: 48em;
+}
+
+.criteria {
+    float: right;
+    border: solid 1px #000000;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    padding: 0.5em;
+    width: 28em;
+}
+
