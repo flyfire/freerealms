@@ -58,7 +58,7 @@ class MainPage(FreeRealmsRequestHandler):
             'user' : self.user_info(),
             'campaign_count': campaign_count,
             'form' : form,
-            'campaigns' : model.find_campaigns(form.keywords)
+            'campaigns' : model.Campaign.find(form.keywords)
         }
         path = template_path('index.html')
         self.response.out.write(template.render(path, template_values))

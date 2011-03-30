@@ -32,7 +32,7 @@ class Campaign(db.Model):
     gamemasters = db.ListProperty(users.User)
     created = db.DateTimeProperty(auto_now_add=True)
     modified = db.DateTimeProperty(auto_now=True)
-    
+
     @calculated_property
     def keywords(model_instance):
         value = []
@@ -45,18 +45,43 @@ class Campaign(db.Model):
     def can_post(self, user):
         return True # FIXME TODO
 
+    @classmethod
+    def find(cls, keywords):
+        q = cls.all()
+        for word in keywords.split():
+            q.filter('keywords =', word.lower())
+            q.order('-modified')
+            q.order('__key__')
+        return q.fetch(20)
+
+
+class Application(db.Model):
+    modified = db.DateTimeProperty(auto_now=True)
+    user = db.UserProperty()
+    message = db.TextProperty()
+
+
+class Player(db.Model):
+    user = db.UserProperty()
+    characters = db.StringListProperty()
+
+
+class Post(db.Model):
+    version = db.DateTimeProperty(auto_now_add=True)
+
+
+class Cast(db.Model):
+    version = db.DateTimeProperty()
+    characters = db.StringListProperty()
+
+
+class Character(db.Model):
+    version = db.DateTimeProperty()    
+    name = db.StringProperty()
+    
 
 def get_campaign(name):
     return Campaign.get_by_key_name(name)
-
-
-def find_campaigns(keywords):
-    q = Campaign.all()
-    for word in keywords.split():
-        q.filter('keywords =', word.lower())
-        q.order('-modified')
-        q.order('__key__')
-    return q.fetch(20)
 
 
 def create_campaign(name, description, system):
