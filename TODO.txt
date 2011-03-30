@@ -1,8 +1,6 @@
 marc
 ----
 
-* implement Campaign counter
-* throw out unused sources
 * favicon.ico
 * add DOCUTILS
 
