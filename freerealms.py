@@ -13,14 +13,16 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-import rest
-
 import counter
 from error import ClientError
 import model
 
 
 template.register_template_library('common.templatefilters')
+
+
+def template_path(template):
+    return os.path.join(os.path.dirname(__file__), 'templates', template)
 
 
 class UserInfo(object):
@@ -58,7 +60,7 @@ class MainPage(FreeRealmsRequestHandler):
             'form' : form,
             'campaigns' : model.find_campaigns(form.keywords)
         }
-        path = os.path.join(os.path.dirname(__file__), 'index.html')
+        path = template_path('index.html')
         self.response.out.write(template.render(path, template_values))
 
 class AddPage(FreeRealmsRequestHandler):
@@ -79,7 +81,7 @@ class AddPage(FreeRealmsRequestHandler):
         template_values = {
             'user' : self.user_info()
         }
-        path = os.path.join(os.path.dirname(__file__), 'add.html')
+        path = template_path('add.html')
         self.response.out.write(template.render(path, template_values))
     
     def post(self):
@@ -93,8 +95,8 @@ class AddPage(FreeRealmsRequestHandler):
                 'user' : self.user_info(),
                 'error_msg' : e.msg
             }
-            path = os.path.join(os.path.dirname(__file__), 'add.html')
-            self.response.out.write(template.render(path, template_values))
+            path = template_path('add.html')
+        self.response.out.write(template.render(path, template_values))
 
 
 class CampaignPage(FreeRealmsRequestHandler):
@@ -108,7 +110,7 @@ class CampaignPage(FreeRealmsRequestHandler):
             'user' : self.user_info(),
             'campaign' : campaign
         }       
-        path = os.path.join(os.path.dirname(__file__), 'campaign.html')
+        path = template_path('campaign.html')
         self.response.out.write(template.render(path, template_values))
 
 
