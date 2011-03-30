@@ -10,19 +10,43 @@ body {
 
 #header {
     position: relative;
+    background-color: aliceblue;
+    padding-left: 0.5em;
+    border-bottom: solid 1px cornflowerblue;
 }
 
 #user {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 0.5em;
+    right: 0.5em;
+}
+
+#content {
+    float: left;
+    width: 63em;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+}
+
+#content h2,
+#content h3
+{
+    margin-left: -0.25em;    
+}
+
+#sidebar {
+    float: right;
+    width: 16em;
+    margin-top: 1em;
 }
 
 #footer {
     margin-top: 0.5em;
-    padding-top: 0.5em;
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
     text-align: center;
-    border-top: solid thin #000000;
+    border-top: solid 1px cornflowerblue;
+    background-color: aliceblue;
     clear: both;
 }
 
@@ -36,18 +60,20 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-    color: red;
+    color: mediumblue;
     margin: 0;
     padding: 0.25em 0;
     font-size: 2em;
     line-height: 0.75em;
-    border-bottom: solid thin red;
 }
 
 h1 > a {
     color: inherit;
     text-decoration: none;
 }
+
+label { font-weight: bold; }
+label, input { display: block; }
 
 input, textarea {
     font-family: "Segoe UI", "Liberation Sans", Arial, sans-serif;
@@ -58,7 +84,7 @@ input[type="submit"] {
 }
 
 input[type="text"] {
-    width: 20em;
+    //width: 20em;
 }
 
 textarea {
@@ -112,10 +138,6 @@ ul.menu li {
     color: blue;
 }
 
-.article p {
-    margin-left: 0.5em;
-}
-
 .note {
     float: right;
     max-width: 9.5em;
@@ -139,17 +161,43 @@ ul.menu li {
 .endnote > h2 {
     margin: 0;
 }
-
-#campaigns > table {
-    width: 48em;
-}
-
-.criteria {
-    float: right;
-    border: solid 1px #000000;
-    margin-top: 1em;
-    margin-bottom: 1em;
+   
+#sidebar > div {
+    background-color: aliceblue;
     padding: 0.5em;
-    width: 28em;
 }
 
+#sidebar > div > h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+#sidebar > div > * {
+    margin-bottom: 0;
+}
+
+.panel {
+    //background-color: whitesmoke;
+    padding: 0.25em;
+}
+
+.clear {
+    clear: both;
+}
+
+.section {
+    margin-bottom: 1em;
+}
+
+form {
+    background-color: aliceblue;
+    padding: 0.25em;
+}
+
+p.error {
+    margin-top: 0;
+    padding: 0.25em;
+    background-color: crimson;
+    color: white;
+    font-weight: bold;   
+}

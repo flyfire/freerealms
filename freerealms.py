@@ -88,7 +88,8 @@ class AddPage(FreeRealmsRequestHandler):
         form = self.form_data()
         try:
             model.create_campaign(form.name, form.description, form.system)
-            self.redirect(self.request.relative_url('/', to_application=True))
+            url = '/campaigns/%s' % urllib.quote(form.name, '')
+            self.redirect(self.request.relative_url(url, to_application=True))
         except ClientError as e:
             template_values = {
                 'form' : form,
@@ -96,7 +97,7 @@ class AddPage(FreeRealmsRequestHandler):
                 'error_msg' : e.msg
             }
             path = template_path('add.html')
-        self.response.out.write(template.render(path, template_values))
+            self.response.out.write(template.render(path, template_values))
 
 
 class CampaignPage(FreeRealmsRequestHandler):
@@ -114,14 +115,52 @@ class CampaignPage(FreeRealmsRequestHandler):
         self.response.out.write(template.render(path, template_values))
 
 
-application = webapp.WSGIApplication([('/', MainPage),
-                                      ('/add', AddPage),
-                                      ('/campaigns/(.*)', CampaignPage)
-                                     ],
-                                     debug=True)
+class DescriptionPage(FreeRealmsRequestHandler):
+
+    def get(self, campaign):
+        campaign = model.get_campaign(urllib.unquote(campaign))
+        if not campaign:
+            self.error(404)
+            return
+        template_values = {
+            'user' : self.user_info(),
+            'campaign' : campaign
+        }       
+        path = template_path('description.html')
+        self.response.out.write(template.render(path, template_values))
+
+
+class NewPage(FreeRealmsRequestHandler):
+
+    def get(self, campaign):
+        campaign = model.get_campaign(urllib.unquote(campaign))
+        if not campaign:
+            self.error(404)
+            return
+        user = users.get_current_user()
+        if not user or not campaign.can_post(user):
+            self.redirect(users.create_login_url(self.request.uri))
+        template_values = {
+            'user' : self.user_info(),
+            'campaign' : campaign
+        }
+        path = template_path('new.html')
+        self.response.out.write(template.render(path, template_values))
+
+
+application = webapp.WSGIApplication(
+    [
+        ('/', MainPage),
+        ('/add', AddPage),
+        ('/campaigns/(.*)/', CampaignPage),
+        ('/campaigns/(.*)/new', NewPage),
+        ('/campaigns/(.*)/description', DescriptionPage),
+    ], debug=True)
+
 
 def main():
     run_wsgi_app(application)
+
 
 if __name__ == '__main__':
     main()

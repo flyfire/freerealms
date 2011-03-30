@@ -1,81 +1,103 @@
 {% extends "base.html" %}
 
+{% block stylesheet %}
+<link type="text/css" rel="stylesheet" href="/stylesheets/index.css">
+{% endblock stylesheet %}
+
 {% block content %}
-<div class="note">
+<div class="section">
+    <h2>Welcome to the Free Realms</h2>
+    <p>
+      The Free Realms is a site dedicated to play-by-post role-playing games. It
+      is a forum-like web application that hosts text-based role-playing
+      games.
+      <br />
+      Each game has at least one responsible game master who is in charge of
+      setting the storyline and accepting players into the game, which run one 
+      or more fictional characters. Posting happens inside a structured thread
+      similar to other forum systems.
+    </p>
+    <p>
+      The application runs on
+      <a href="http://code.google.com/appengine">Google App Engine</a>.
+    </p>
+
+    <div class="section">
+        <h3>Create your own campaign</h3>
+        <p>
+          In the Free Realms you can easily create your own campaign. Just
+          follow the link below.
+          (Note that you will need to log in with a
+          <a href="https://www.google.com/accounts/">Google Account</a>.)
+          <br />
+          If you rather want to join one of the existing campaigns or just lurk
+          around, view the list of hosted campaigns at the bottom of this page.
+        </p>
+        <ul class="menu">
+          <li><a href="add">Create campaign</a></li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h3>Browse Campaigns</h3>
+        <p>
+            Below you can see a selection the games currently hosted on this
+            platform.
+            By entering some search criteria, you can look for specific games.
+        </p>
+        <div id="listing" class="panel">
+            <form class="criteria" method="get" action="{{ here }}">
+                <fieldset>
+                    <legend>Search Criteria</legend>
+                    <label for="keywords">Keywords</label></th>
+                    <input type="text" name="keywords" 
+                      value="{{ form.keywords }}" />
+                    <label for="active">Only active games</label>
+                    <input type="checkbox" name="active" value="active">
+                </fieldset>
+                <input type="submit" value="Update campaign listing" />
+            </form>
+
+            <table class="listing" cellspacing="0">
+              <caption>Campaigns that fulfill your search criteria.</caption>
+              <thead>
+                <tr>
+                  <th>Campaign Name</th>
+                  <th>Game System</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for campaign in campaigns %}
+                <tr>
+                  <td>
+                    <a href="campaigns/{{ campaign.key.name|urlquote }}/description">{{ campaign.key.name }}</a>
+                  </td>
+                  <td>{{ campaign.system }}</td>
+                </tr>
+                {% endfor %}
+                {% if not campaigns %}
+                <tr>
+                  <td colspan="3">
+                    <p class="info">
+                        The are currently no campaigns online 
+                        fitting your search criteria.
+                    </p>
+                  </td>
+                {% endif %}
+                </tr>
+              </tbody>
+            </table>
+            
+            <div class="clear"></div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block sidebar %}
+<div>
     <h2>Information</h2>
     <p>There are currently {{ campaign_count }} games hosted on this site.</p>
 </div>
-
-<div class="article">
-<h2>Welcome to the Free Realms</h2>
-<p>
-  The Free Realms is a site dedicated to play-by-post role-playing games.
-</p>
-
-<h3>Create your own campaign</h3>
-<p>
-  In the Free Realms you can easily create your own campaign. Just follow the link below.
-  (Note that you will need to log in with a
-  <a href="https://www.google.com/accounts/">Google Account</a>.)
-  <br />
-  If you rather want to join one of the existing campaigns or just lurk around,
-  view the list of hosted campaigns at the bottom of this page.
-</p>
-<ul class="buttonset">
-  <li><a href="add">Create campaign</a></li>
-</ul>
-</div>
-
-<div id="campaigns" class="endnote">
-    <form class="criteria" method="get" action="{{ here }}">
-        <fieldset>
-            <legend>Search Criteria</legend>
-            <table>
-                <tr>
-                  <th><label for="keywords">Keywords</label></th>
-                  <td><input type="text" name="keywords"
-                    value="{{ form.keywords }}" />
-                </tr>
-                <tr>
-                  <th><label for="active">Only active games</label></th>
-                  <td><input type="checkbox" name="active" value="active"></td>
-            </table>
-        </fieldset>
-        <input type="submit" value="Update campaign listing" />
-    </form>
-
-    <h2>Browse Campaigns</h2>
-
-    <table class="listing" cellspacing="0">
-      <caption>Campaigns that fulfill your search criteria.</caption>
-      <thead>
-        <tr>
-          <th>Campaign Name</th>
-          <th>Game System</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for campaign in campaigns %}
-        <tr>
-          <td>{{ campaign.key.name }}</td>
-          <td>{{ campaign.system }}</td>
-          <td><a class="button"
-            href="campaigns/{{ campaign.key.name|urlquote }}">Show</a></td>
-        </tr>
-        {% endfor %}
-        {% if not campaigns %}
-        <tr>
-          <td colspan="3">
-            <p class="info">
-                The are currently no campaigns online 
-                fitting your search criteria.
-            </p>
-          </td>
-        {% endif %}
-        </tr>
-      </tbody>
-    </table>
-</div>
-{% endblock content %}
+{% endblock sidebar %}
 

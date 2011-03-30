@@ -2,7 +2,8 @@
 <html>
 <head>
     <title>Free Realms</title>
-    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css">
+    <link type="text/css" rel="stylesheet" href="/stylesheets/base.css">
+    {% block stylesheet %}{% endblock %}
 </head>
 <body>
     <div id="header">
@@ -23,6 +24,9 @@
     </div>
     <div id="content">
         {% block content %}{% endblock %}
+    </div>
+    <div id="sidebar">
+        {% block sidebar %}{% endblock %}
     </div>
     <div id="footer">
         Copyright &copy; 2011&ndash;{% now "Y"%} 

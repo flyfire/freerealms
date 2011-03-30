@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div class="form">
+<div class="section">
     <h2>Create a new campaign</h2>
     <p>
         Fill in the fields below and press the submit button.
@@ -17,19 +17,12 @@
       {% endif %}
       <fieldset>
         <legend>Campaign Details</legend>
-        <table>
-          <tr>
-            <th><label for="name">Campaign name</label></th>
-            <td><input type="text" name="name" value="{{ form.name }}"/></td>
-          </tr>
-          <tr>
-            <th><label for="system">Game system</label></th>
-            <td><input type="text" name="system" value="{{ form.system }}"/></td>
-          </tr>
-          <tr>
-            <th><label for="description">Detailed description</label></th>
-            <td><textarea name="description">{{ form.description }}</textarea></td>
-        </table>
+        <label for="name">Campaign name</label>
+        <input type="text" name="name" value="{{ form.name }}"/>
+        <label for="system">Game system</label>
+        <input type="text" name="system" value="{{ form.system }}"/>
+        <label for="description">Detailed description</label>
+        <textarea name="description">{{ form.description }}</textarea>
       </fieldset>
       <input type="submit" value="Create" />
     </form>

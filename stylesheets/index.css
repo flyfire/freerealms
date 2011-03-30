@@ -1,0 +1,18 @@
+#listing table {
+    width: 40em;
+}
+
+#listing form {
+    float: right;
+    width: 19em;
+    background-color: aliceblue;
+    margin: 0.25em;
+}
+
+#listing form input[type="text"] {
+    width: 16em;
+}
+
+#listing form input[type="submit"] {
+    float: right;
+}

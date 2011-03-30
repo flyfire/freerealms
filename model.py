@@ -42,6 +42,9 @@ class Campaign(db.Model):
             value.extend(generate_keywords(user.nickname()))
         return value
 
+    def can_post(self, user):
+        return True # FIXME TODO
+
 
 def get_campaign(name):
     return Campaign.get_by_key_name(name)
