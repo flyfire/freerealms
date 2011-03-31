@@ -57,6 +57,7 @@ class MainPage(FreeRealmsRequestHandler):
         template_values = {
             'user' : self.user_info(),
             'campaign_count': campaign_count,
+            'applications' : model.Application.find(),
             'form' : form,
             'campaigns' : model.Campaign.find(form.keywords)
         }
@@ -87,7 +88,7 @@ class AddPage(FreeRealmsRequestHandler):
     def post(self):
         form = self.form_data()
         try:
-            model.create_campaign(form.name, form.description, form.system)
+            model.Campaign.create(form.name, form.description, form.system)
             url = '/campaigns/%s' % urllib.quote(form.name, '')
             self.redirect(self.request.relative_url(url, to_application=True))
         except ClientError as e:
@@ -133,7 +134,7 @@ class DescriptionPage(FreeRealmsRequestHandler):
 class NewPage(FreeRealmsRequestHandler):
 
     def get(self, campaign):
-        campaign = model.get_campaign(urllib.unquote(campaign))
+        campaign = Campaign.get_by_quoted(campaign)
         if not campaign:
             self.error(404)
             return
@@ -148,6 +149,105 @@ class NewPage(FreeRealmsRequestHandler):
         self.response.out.write(template.render(path, template_values))
 
 
+class ApplicationPage(FreeRealmsRequestHandler):
+
+    class FormData(object):
+    
+        def __init__(self, request):
+            self.message = request.get('message')
+
+    def form_data(self):
+        return self.FormData(self.request)
+
+    def get(self, campaign):
+        campaign = model.Campaign.get_by_quoted(campaign)
+        if not campaign:
+            self.error(404)
+            return
+        if not users.get_current_user():
+            self.redirect(users.create_login_url(self.request.uri))
+        form = self.form_data()
+        application = campaign.application()
+        if application:
+            form.message = application.message
+        template_values = {
+            'form' : form,
+            'user' : self.user_info(),
+            'campaign' : campaign, 
+        }
+        path = template_path('application.html')
+        self.response.out.write(template.render(path, template_values))
+
+    def post(self, campaign):
+        campaign = model.Campaign.get_by_quoted(campaign)
+        if not campaign:
+            self.error(404)
+            return
+        form = self.form_data()
+        action = self.request.get('action', 'apply')
+        try:
+            if action == 'apply':
+                campaign.create_application(form.message)
+            else:
+                campaign.delete_application()
+            url = '/'
+            self.redirect(self.request.relative_url(url, to_application=True))
+        except ClientError as e:
+            template_values = {
+                'form' : form,
+                'user' : self.user_info(),
+                'campaign': campaign,
+                'error_msg' : e.msg
+            }
+            path = template_path('application.html')
+            self.response.out.write(template.render(path, template_values))
+
+class ApplicationsPage(FreeRealmsRequestHandler):
+
+    def get(self, campaign):
+        campaign = model.Campaign.get_by_quoted(campaign)
+        if not campaign:
+            self.error(404)
+            return
+        if not campaign.is_gamemaster():
+            self.error(403)
+            return
+        applications = campaign.applications()
+        template_values = {
+            'user' : self.user_info(),
+            'campaign' : campaign,
+            'applications' : applications
+        }
+        path = template_path('applications.html')
+        self.response.out.write(template.render(path, template_values))
+
+    def post(self, campaign):
+        campaign = model.Campaign.get_by_quoted(campaign)
+        if not campaign:
+            self.error(404)
+            return
+        if not campaign.is_gamemaster():
+            self.error(403)
+            return
+        accept = self.request.get('accept')
+        reject = self.request.get('reject')
+        user_id = accept or reject
+        if user_id:
+            application = campaign.application(user_id)
+        if accept and application:
+            campaign.create_player(application.user)                            
+            application.delete()
+        if reject and application:
+            application.delete()
+        template_values = {
+            'user' : self.user_info(),
+            'campaign' : campaign,
+            'applications' : campaign.applications()
+        }
+        path = template_path('applications.html')
+        self.response.out.write(template.render(path, template_values))
+
+
 application = webapp.WSGIApplication(
     [
         ('/', MainPage),
@@ -155,6 +255,8 @@ application = webapp.WSGIApplication(
         ('/campaigns/(.*)/', CampaignPage),
         ('/campaigns/(.*)/new', NewPage),
         ('/campaigns/(.*)/description', DescriptionPage),
+        ('/campaigns/(.*)/application', ApplicationPage),
+        ('/campaigns/(.*)/applications', ApplicationsPage),
     ], debug=True)
 
 

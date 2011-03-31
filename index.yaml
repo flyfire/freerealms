@@ -10,6 +10,19 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: Application
+  properties:
+  - name: user
+  - name: modified
+    direction: desc
+
+- kind: Application
+  ancestor: yes
+  properties:
+  - name: modified
+    direction: desc
+  - name: user
+
 - kind: Campaign
   properties:
   - name: keywords

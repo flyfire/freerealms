@@ -161,10 +161,11 @@ ul.menu li {
 .endnote > h2 {
     margin: 0;
 }
-   
+
 #sidebar > div {
     background-color: aliceblue;
     padding: 0.5em;
+    margin-bottom: 1em;
 }
 
 #sidebar > div > h2 {
@@ -177,7 +178,6 @@ ul.menu li {
 }
 
 .panel {
-    //background-color: whitesmoke;
     padding: 0.25em;
 }
 
@@ -200,4 +200,8 @@ p.error {
     background-color: crimson;
     color: white;
     font-weight: bold;   
+}
+
+.name {
+    font-style: italic;
 }

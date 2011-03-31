@@ -1,8 +1,12 @@
 marc
 ----
 
+* players.html for game masters
+* gamemaster menu
+
 * favicon.ico
-* add DOCUTILS
+* docutils: ignore warnings
+* docutils: write own writer
 
 * Licences für docutils & roman.py
 

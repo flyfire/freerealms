@@ -1,0 +1,38 @@
+{% extends "two_column.html" %}
+
+{% block content %}
+
+<div class="section">
+    <h2>Applications for campaign <span class="name">{{ campaign.name }}</span></h2>
+    <p>
+        The following persons have currently applied for membership in your
+        campaign. Before you accept an applicant into the campaign, you may want
+        to contact them. As the application itself will be deleted after an
+        applicant has been accepted, make a copy of any information in the
+        application you may still need.
+        <br />
+        If you reject an application, it will be deleted. Before you reject an
+        application, you should contact the applicant first.
+    </p>
+    
+    <!-- TODO: Use definition list? -->
+    {% if applications %}
+    <form method="post">
+        {% for application in applications %}
+        <fieldset>
+            <legend>Application of {{ application.user.nickname }}</legend>
+            <div class="richtext">
+                {{ application.message|restructuredtext }}
+            </div>
+            <button name="accept" value="{{ application.user_id }}">Accept</button>
+            <button name="reject" value="{{ application.user_id }}">Reject</button>           
+        </fieldset>
+        {% endfor %}
+    </form>
+    {% else %}
+    <p class="note">There are currently no applications.</p>
+    {% endif %}
+</div>
+
+{% endblock content %}
+

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "two_column.html" %}
 
 {% block stylesheet %}
 <link type="text/css" rel="stylesheet" href="/stylesheets/index.css">
@@ -99,5 +99,19 @@
     <h2>Information</h2>
     <p>There are currently {{ campaign_count }} games hosted on this site.</p>
 </div>
+
+{% if applications %}
+<div>
+    <h2>My applications</h2>
+    <ul>
+        {% for application in applications %}
+        <li><a
+          href="campaigns/{{ application.campaign.name|urlquote }}/application">{{ application.campaign.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
 {% endblock sidebar %}
 

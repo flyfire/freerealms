@@ -1,0 +1,29 @@
+{% extends "two_column.html" %}
+
+{% block content %}
+
+<div class="section">
+    <h2>Apply for membership in campaign <span class="name">{{ campaign.name }}</span></h2>
+    <p>
+        Fill in the fields below and press the submit button.
+        (If you want to abort, simply use your browser's back button.)
+    </p>
+
+    <form method="post">
+        {% if error_msg %}
+        <p class="error">
+            {{ error_msg }}
+        </p>
+        {% endif %}
+        <fieldset>
+            <legend>Application Details</legend>          
+            <label for="message">Message to the Game Masters</label>
+            <textarea name="message">{{ form.message }}</textarea>
+        </fieldset>
+        <button name="action" value="apply">Apply</button>
+        <button name="action" value="revoke">Revoke</button>
+    </form>
+</div>
+
+{% endblock content %}
+

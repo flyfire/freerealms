@@ -1,3 +1,5 @@
+import urllib
+
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext.db import BadKeyError
@@ -33,6 +35,10 @@ class Campaign(db.Model):
     created = db.DateTimeProperty(auto_now_add=True)
     modified = db.DateTimeProperty(auto_now=True)
 
+    @property
+    def name(self):
+        return self.key().name()
+
     @calculated_property
     def keywords(model_instance):
         value = []
@@ -42,8 +48,18 @@ class Campaign(db.Model):
             value.extend(generate_keywords(user.nickname()))
         return value
 
+    @classmethod
+    def get_by_quoted(cls, campaign):
+        return cls.get_by_key_name(urllib.unquote(campaign))
+
     def can_post(self, user):
         return True # FIXME TODO
+
+    def is_gamemaster(self):
+        try:
+            return users.User() in self.gamemasters
+        except users.UserNotFoundError:
+            return False
 
     @classmethod
     def find(cls, keywords):
@@ -54,12 +70,89 @@ class Campaign(db.Model):
             q.order('__key__')
         return q.fetch(20)
 
+    @classmethod
+    def create(name, description, system):
+        user = users.get_current_user()
+        if not user:
+            raise ClientError(
+                u"Not logged in. Please log in before you proceed.")
+        try:
+            campaign = cls(
+                key_name=name,
+                description=description,
+                system=system,
+                gamemasters=[user])
+        except BadKeyError:
+            raise ClientError(
+                u"'%s' is not a suitable campaign name." % name if name else
+                u"Campaign name missing. Please fill in a campaign name.")
+        def txn():
+            if Campaign.get_by_key_name(name):
+                raise ClientError(
+                    u"There exists already a campaign by the name '%s'." %
+                    name)
+            campaign.put()
+        db.run_in_transaction(txn)
+        counter.increment('campaigns')
+        return campaign
+
+    def create_application(self, message):
+        try:
+            application = Application(
+                parent=self,
+                key_name=users.User().user_id(),
+                message=message)
+        except users.UserNotFoundError:
+            raise ClientError(
+                u"Not logged in. Please log in before you proceed.")
+        application.put()
+        return application
+    
+    def create_player(self, user):
+        player = Player(parent=self, key_name=user.user_id(), user=user)
+        player.put()
+        return player
+    
+    def application(self, user_id):
+        if not user_id:
+            user_id = users.User().user_id()
+        return Application.get_by_key_name(user_id, parent=self)
+
+    def delete_application(self):
+        application = self.get_application()
+        if application:
+            application.delete()
+    
+    def applications(self):
+        q = Application.all()
+        q.ancestor(self)
+        q.order('-modified')
+        q.order('user')
+        return q.fetch(20)
 
 class Application(db.Model):
     modified = db.DateTimeProperty(auto_now=True)
-    user = db.UserProperty()
+    user = db.UserProperty(auto_current_user_add=True)
     message = db.TextProperty()
 
+    @property
+    def user_id(self):
+        return self.key().name()
+
+    @property
+    def campaign(self):
+        return self.parent()
+
+    @classmethod
+    def find(cls):
+        try:
+            q = cls.all()
+            q.filter('user =', users.User())
+            q.order('-modified')
+            q.order('__key__')
+            return q.fetch(20)
+        except users.UserNotFoundError:
+            return None
 
 class Player(db.Model):
     user = db.UserProperty()
@@ -81,28 +174,6 @@ class Character(db.Model):
     
 
 def get_campaign(name):
+    # TODO: Remove.
     return Campaign.get_by_key_name(name)
-
-
-def create_campaign(name, description, system):
-    user = users.get_current_user()
-    if not user:
-        raise ClientError(u"Not logged in. Please log in before you proceed.")
-    try:  
-        campaign = Campaign(
-            key_name=name,
-            description=description,
-            system=system,
-            gamemasters=[user])
-    except BadKeyError:
-        raise ClientError(
-            u"'%s' is not a suitable campaign name." % name if name else
-            u"Campaign name missing. Please fill in a campaign name.")
-    def txn():
-        if Campaign.get_by_key_name(name):
-            raise ClientError(
-                u"There exists already a campaign by the name '%s'." % name)
-        campaign.put()
-    db.run_in_transaction(txn)
-    counter.increment('campaigns')
 

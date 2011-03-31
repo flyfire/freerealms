@@ -9,7 +9,9 @@
     <div id="header">
         <h1>
             <a href="/">{% block heading %}Free Realms{% endblock %}</a>
-            {% block subtitle %}{% endblock subtitle %}
+            {% if campaign %}
+                &mdash; <span id="campaign">{{ campaign.name }}</span>
+            {% endif %}
         </h1>
         <ul id="user" class="menu">
             {% if user.nickname %}
@@ -22,12 +24,8 @@
             {% endif %}
         </ul>
     </div>
-    <div id="content">
-        {% block content %}{% endblock %}
-    </div>
-    <div id="sidebar">
-        {% block sidebar %}{% endblock %}
-    </div>
+    {% block main %}
+    {% endblock main %}
     <div id="footer">
         Copyright &copy; 2011&ndash;{% now "Y"%} 
         <a href="mailto:marc@nieper-wisskirchen.de?subject=Free%20Realms">Marc
