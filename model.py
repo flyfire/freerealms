@@ -34,6 +34,7 @@ class Campaign(db.Model):
     gamemasters = db.ListProperty(users.User)
     created = db.DateTimeProperty(auto_now_add=True)
     modified = db.DateTimeProperty(auto_now=True)
+    new_applications = db.BooleanProperty(default=False)
 
     @property
     def name(self):
@@ -50,7 +51,7 @@ class Campaign(db.Model):
 
     @classmethod
     def get_by_quoted(cls, campaign):
-        return cls.get_by_key_name(urllib.unquote(campaign))
+        return cls.get_by_key_name(urllib.unquote_plus(campaign))
 
     def can_post(self, user):
         return True # FIXME TODO
@@ -106,14 +107,16 @@ class Campaign(db.Model):
             raise ClientError(
                 u"Not logged in. Please log in before you proceed.")
         application.put()
+        self.new_applications = True
+        self.put()
         return application
-    
+
     def create_player(self, user):
         player = Player(parent=self, key_name=user.user_id(), user=user)
         player.put()
         return player
     
-    def application(self, user_id):
+    def application(self, user_id=None):
         if not user_id:
             user_id = users.User().user_id()
         return Application.get_by_key_name(user_id, parent=self)
@@ -124,9 +127,17 @@ class Campaign(db.Model):
             application.delete()
     
     def applications(self):
+        self.new_applications = False
+        self.put()
         q = Application.all()
         q.ancestor(self)
         q.order('-modified')
+        q.order('user')
+        return q.fetch(20)
+
+    def players(self):
+        q = Player.all()
+        q.ancestor(self)
         q.order('user')
         return q.fetch(20)
 
@@ -157,6 +168,14 @@ class Application(db.Model):
 class Player(db.Model):
     user = db.UserProperty()
     characters = db.StringListProperty()
+    
+    @property
+    def user_id(self):
+        return self.key().name()
+    
+    @property
+    def campaign(self):
+        return self.parent()
 
 
 class Post(db.Model):
@@ -169,9 +188,19 @@ class Cast(db.Model):
 
 
 class Character(db.Model):
-    version = db.DateTimeProperty()    
-    name = db.StringProperty()
-    
+
+    @property
+    def name(self):
+        return self.key().name()
+
+
+class CharacterVersion(db.Model):
+    version = db.DateTimeProperty() # TODO: May into number and as part of key.
+
+    @property
+    def name(self):
+        return self.parent.name        
+
 
 def get_campaign(name):
     # TODO: Remove.

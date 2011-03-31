@@ -41,6 +41,10 @@ class FreeRealmsRequestHandler(webapp.RequestHandler):
     def user_info(self):
         return UserInfo(self.request)
 
+    # TODO: template_values into RequestHandler
+    def render(self, template_file, template_values):
+        path = template_path(template_file)
+        self.response.out.write(template.render(path, template_values))
 
 class MainPage(FreeRealmsRequestHandler):
 
@@ -110,7 +114,7 @@ class CampaignPage(FreeRealmsRequestHandler):
             return
         template_values = {
             'user' : self.user_info(),
-            'campaign' : campaign
+            'campaign' : campaign,
         }       
         path = template_path('campaign.html')
         self.response.out.write(template.render(path, template_values))
@@ -125,7 +129,7 @@ class DescriptionPage(FreeRealmsRequestHandler):
             return
         template_values = {
             'user' : self.user_info(),
-            'campaign' : campaign
+            'campaign' : campaign,
         }       
         path = template_path('description.html')
         self.response.out.write(template.render(path, template_values))
@@ -143,7 +147,7 @@ class NewPage(FreeRealmsRequestHandler):
             self.redirect(users.create_login_url(self.request.uri))
         template_values = {
             'user' : self.user_info(),
-            'campaign' : campaign
+            'campaign' : campaign,
         }
         path = template_path('new.html')
         self.response.out.write(template.render(path, template_values))
@@ -173,7 +177,7 @@ class ApplicationPage(FreeRealmsRequestHandler):
         template_values = {
             'form' : form,
             'user' : self.user_info(),
-            'campaign' : campaign, 
+            'campaign' : campaign,
         }
         path = template_path('application.html')
         self.response.out.write(template.render(path, template_values))
@@ -210,7 +214,7 @@ class ApplicationsPage(FreeRealmsRequestHandler):
             self.error(404)
             return
         if not campaign.is_gamemaster():
-            self.error(403)
+            self.redirect(users.create_login_url(self.request.uri))
             return
         applications = campaign.applications()
         template_values = {
@@ -227,7 +231,7 @@ class ApplicationsPage(FreeRealmsRequestHandler):
             self.error(404)
             return
         if not campaign.is_gamemaster():
-            self.error(403)
+            self.redirect(users.create_login_url(self.request.uri))
             return
         accept = self.request.get('accept')
         reject = self.request.get('reject')
@@ -248,6 +252,43 @@ class ApplicationsPage(FreeRealmsRequestHandler):
         self.response.out.write(template.render(path, template_values))
 
 
+class PlayersPage(FreeRealmsRequestHandler):
+
+    def get(self, campaign):
+        campaign = model.Campaign.get_by_quoted(campaign)
+        if not campaign:
+            self.error(404)
+            return
+        if not campaign.is_gamemaster():
+            self.redirect(users.create_login_url(self.request.uri))
+            return
+        players = campaign.players()
+        template_values = {
+            'user' : self.user_info(),
+            'campaign' : campaign,
+            'players' : players,
+        }
+        self.render('players.html', template_values)
+
+    def post(self, campaign):
+        pass # TODO
+
+class CharactersPage(FreeRealmsRequestHandler):
+
+    def get(self, campaign):
+        campaign = model.Campaign.get_by_quoted(campaign)
+        template_values = {
+            'user' : self.user_info(),
+            'campaign' : campaign
+        }
+        self.render('characters.html', template_values)
+
+class CharacterPage(FreeRealmsRequestHandler):
+
+    def get(self, campaign, character):
+        campaign = model.Campaign.get_by_quoted(campaign)
+        
+
 application = webapp.WSGIApplication(
     [
         ('/', MainPage),
@@ -256,7 +297,10 @@ application = webapp.WSGIApplication(
         ('/campaigns/(.*)/new', NewPage),
         ('/campaigns/(.*)/description', DescriptionPage),
         ('/campaigns/(.*)/application', ApplicationPage),
+        ('/campaigns/(.*)/characters', CharactersPage),
         ('/campaigns/(.*)/applications', ApplicationsPage),
+        ('/campaigns/(.*)/players', PlayersPage),
+        ('/campaigns/(.*)/characters/(.*)/', CharacterPage),
     ], debug=True)
 
 

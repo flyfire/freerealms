@@ -73,18 +73,19 @@ h1 > a {
 }
 
 label { font-weight: bold; }
-label, input { display: block; }
+label, input, button { display: block; }
 
 input, textarea {
     font-family: "Segoe UI", "Liberation Sans", Arial, sans-serif;
     font-size: 1em;
 }
 
-input[type="submit"] {
+.form button {
+    float: right;
 }
 
-input[type="text"] {
-    //width: 20em;
+td button {
+    display: inline;
 }
 
 textarea {
@@ -121,6 +122,14 @@ fieldset > table th {
 
 caption {
     display: none;
+}
+
+dt {
+    font-weight: bold;
+}
+
+dd {
+    margin-left: 2em;
 }
 
 ul.menu {
@@ -189,7 +198,7 @@ ul.menu li {
     margin-bottom: 1em;
 }
 
-form {
+.form {
     background-color: aliceblue;
     padding: 0.25em;
 }
@@ -205,3 +214,9 @@ p.error {
 .name {
     font-style: italic;
 }
+
+a.alert,
+.alert {
+    color: red;
+}
+

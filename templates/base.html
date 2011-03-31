@@ -23,13 +23,21 @@
                 <li><a href="{{ user.url }}">Login</a></li>
             {% endif %}
         </ul>
+        {% if campaign.is_gamemaster %}
+        <ul id="gamemaster" class="menu">
+            <li><a href="characters">Characters</a></li>
+            <li><a href="players">Players</a></li>
+            <li><a href="applications" {% if campaign.new_applications %}class="alert"{% endif %}>Applications</a></li>
+        </ul>
+        {% endif %}
     </div>
     {% block main %}
     {% endblock main %}
     <div id="footer">
-        Copyright &copy; 2011&ndash;{% now "Y"%} 
+        The Free Realms is
+        &copy; 2011&ndash;{% now "Y"%} 
         <a href="mailto:marc@nieper-wisskirchen.de?subject=Free%20Realms">Marc
-          Nieper-Wi&szlig;kirchen</a>
+          Nieper-Wi&szlig;kirchen</a> and contributors.
     </div>
 </body>
 </html>

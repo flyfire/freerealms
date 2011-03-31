@@ -17,18 +17,21 @@
     
     <!-- TODO: Use definition list? -->
     {% if applications %}
-    <form method="post">
+    <dl>
         {% for application in applications %}
-        <fieldset>
-            <legend>Application of {{ application.user.nickname }}</legend>
-            <div class="richtext">
-                {{ application.message|restructuredtext }}
-            </div>
-            <button name="accept" value="{{ application.user_id }}">Accept</button>
-            <button name="reject" value="{{ application.user_id }}">Reject</button>           
-        </fieldset>
+        <dt>Application from <span class="name">{{ application.user.nickname }}</span></dt>
+        <dd>
+            <form method="post">
+                <div class="richtext">
+                    {{ application.message|restructuredtext }}
+                </div>
+                <button name="accept" value="{{ application.user_id }}">Accept</button>
+                <button name="reject" value="{{ application.user_id }}">Reject</button>    
+                <div class="clear"></div>       
+            </form>
+        </dd>
         {% endfor %}
-    </form>
+    </dl>
     {% else %}
     <p class="note">There are currently no applications.</p>
     {% endif %}

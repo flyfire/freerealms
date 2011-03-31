@@ -12,7 +12,7 @@ register = template.create_template_register()
 
 @register.filter
 def urlquote(value):
-    return urllib.quote(value, '')
+    return urllib.quote_plus(value)
 
 @register.filter
 def restructuredtext(value):

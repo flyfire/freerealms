@@ -1,0 +1,37 @@
+{% extends "two_column.html" %}
+
+{% block content %}
+
+<div class="section">
+    <h2>Players participating in this campaign</h2>
+    <table class="listing">
+        <thead>
+            <tr>
+                <th>Nickname</th>
+                <th>Characters</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in players %}
+            <tr>
+                <td><a href="mailto:{{ player.user.email }}">{{ player.user.nickname }}</a></td>
+                <td></td>
+                <td>
+                    <form method="post">
+                        <button name="gamemaster" value="{{ player.user_id }}">Promote to gamemaster</button>
+                        <button name="remove" value="{{ player.user_id }}">Remove from campaign</button>
+                        <select name="character" size="1">
+                            <!-- TODO -->
+                        </select>
+                        <button name="handover" value="{{ player.user_id }}">Hand over</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock content %}
+
