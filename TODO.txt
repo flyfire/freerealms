@@ -8,5 +8,5 @@ marc
 * docutils: ignore warnings
 * docutils: write own writer
 
-* Licences für docutils & roman.py
+* Licences für docutils, ndb & roman.py
 

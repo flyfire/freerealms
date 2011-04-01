@@ -25,19 +25,27 @@
         </ul>
         {% if campaign.is_gamemaster %}
         <ul id="gamemaster" class="menu">
-            <li><a href="characters">Characters</a></li>
-            <li><a href="players">Players</a></li>
-            <li><a href="applications" {% if campaign.new_applications %}class="alert"{% endif %}>Applications</a></li>
+            <li>Gamemaster menu:</li>
+            <li><a href="/campaigns/{{ campaign.name|urlquote }}/characters/">Characters</a></li>
+            <li><a href="/campaigns/{{ campaign.name|urlquote }}/players">Players</a></li>
+            <li><a href="/campaigns/{{ campaign.name|urlquote }}/applications" {% if campaign.new_applications %}class="alert"{% endif %}>Applications</a></li>
         </ul>
         {% endif %}
     </div>
     {% block main %}
     {% endblock main %}
     <div id="footer">
-        The Free Realms is
-        &copy; 2011&ndash;{% now "Y"%} 
-        <a href="mailto:marc@nieper-wisskirchen.de?subject=Free%20Realms">Marc
-          Nieper-Wi&szlig;kirchen</a> and contributors.
+        <p class="copyright">
+            The Free Realms is
+            &copy; 2011&ndash;{% now "Y"%} 
+            <a href="mailto:marc@nieper-wisskirchen.de?subject=Free%20Realms">Marc
+              Nieper-Wi&szlig;kirchen</a> and contributors.
+        </p>
+        <div id="colophon">
+            <img src="/images/python-powered-w-70x28.png" alt="Python Powered" />
+            <img src="http://code.google.com/appengine/images/appengine-noborder-120x30.gif" 
+                alt="Powered by Google App Engine" />
+        </div>
     </div>
 </body>
 </html>

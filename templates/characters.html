@@ -1,2 +1,49 @@
 {% extends "two_column.html" %}
 
+{% block content %}
+
+<div>
+    <h2>Characters in campaign <span class="name">{{ campaign }}</h2>
+
+    {% if characters %}
+    <dl>
+        {% for character in characters %}
+        <dt>{{ character }}</dt>
+        <dd>
+            {{ character.short_desc }}
+            <table>
+                <tr>
+                    <th>Description</th>
+                    <td>{{ character.description|restructuredtext }}</td>
+                </tr>
+                <tr>
+                    <th>Responsible players</th>
+                    <td>
+                        <ul>
+                        {% for player in character.players %}
+                            <li>{{ player }}</li>
+                        {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+            </table>                    
+            <form method="post">
+                <button name="remove" value="{{ character }}"
+                  onclick="return confirm('Do you really want to remove this character?')">Remove this character</button>
+            </form>
+        </dd>
+        {% endfor %}
+    </dl>
+    {% else %}
+    <p class="info">
+        There are currently no characters defined in this campaign.
+    </p>
+    {% endif %}
+
+    <ul class="menu">
+        <li><a href="add">Add character</a></li>
+    </ul>
+</div>
+
+{% endblock content %}
+

@@ -70,7 +70,7 @@
                 {% for campaign in campaigns %}
                 <tr>
                   <td>
-                    <a href="campaigns/{{ campaign.key.name|urlquote }}/description">{{ campaign.key.name }}</a>
+                    <a href="{{ campaign.url }}description">{{ campaign }}</a>
                   </td>
                   <td>{{ campaign.system }}</td>
                 </tr>

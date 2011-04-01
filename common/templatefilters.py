@@ -9,10 +9,10 @@ from django.utils.encoding import smart_str, force_unicode
 
 register = template.create_template_register()
 
-
+# XXX: We don't need this if we implement an url instance method for the models.
 @register.filter
 def urlquote(value):
-    return urllib.quote_plus(value)
+    return urllib.quote(value, '')
 
 @register.filter
 def restructuredtext(value):

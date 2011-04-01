@@ -1,0 +1,22 @@
+{% extends "two_column.html" %}
+
+{% block content %}
+
+<div>
+    <h2>Create a character for campaign <span class="name">{{ campaign }}</span></h2>
+    <form method="post">
+        <fieldset>
+            <legend>Character details</legend>
+            <label for="name">Character name</label>
+            <input type="text" name="name">{{ form.name }}</input>
+            <label for="short_desc">Short description of character</label>
+            <input type="text" name="short_desc">{{ form.short_desc }}</input>
+            <label for="description" name="description">Description of character</label>
+            <textarea name="description">{{ form.description }}</textarea>
+        </fieldset>
+        <button>Create character</button>
+    </form>
+</div>
+
+{% endblock content %}
+

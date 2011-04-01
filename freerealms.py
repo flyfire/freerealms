@@ -46,6 +46,10 @@ class FreeRealmsRequestHandler(webapp.RequestHandler):
         path = template_path(template_file)
         self.response.out.write(template.render(path, template_values))
 
+    def relative_redirect(self, url):
+        self.redirect(self.request.relative_url(url, to_application=True))
+
+
 class MainPage(FreeRealmsRequestHandler):
 
     class FormData(object):
@@ -108,7 +112,7 @@ class AddPage(FreeRealmsRequestHandler):
 class CampaignPage(FreeRealmsRequestHandler):
 
     def get(self, campaign):
-        campaign = model.get_campaign(urllib.unquote(campaign))
+        campaign = model.Campaign.get_by_quoted(campaign)
         if not campaign:
             self.error(404)
             return
@@ -123,7 +127,7 @@ class CampaignPage(FreeRealmsRequestHandler):
 class DescriptionPage(FreeRealmsRequestHandler):
 
     def get(self, campaign):
-        campaign = model.get_campaign(urllib.unquote(campaign))
+        campaign = model.Campaign.get_by_quoted(campaign)
         if not campaign:
             self.error(404)
             return
@@ -271,36 +275,134 @@ class PlayersPage(FreeRealmsRequestHandler):
         self.render('players.html', template_values)
 
     def post(self, campaign):
-        pass # TODO
+        campaign = model.Campaign.get_by_quoted(campaign)
+        if not campaign:
+            self.error(404)
+            return
+        if not campaign.is_gamemaster():
+            self.redirect(users.create_login_url(self.request.uri))
+            return
+        handover = self.request.get('handover')
+        user_id = handover
+        if user_id:
+            player = campaign.player(user_id)
+        if player and handover:
+            character = self.request.get('character')
+            if not character in player.characters:
+                player.characters.append(character)
+            player.put()
+        template_values = {
+            'user' : self.user_info(),
+            'campaign' : campaign,
+            'players' : campaign.players(),
+        }
+        self.render('players.html', template_values)
+
 
 class CharactersPage(FreeRealmsRequestHandler):
 
     def get(self, campaign):
         campaign = model.Campaign.get_by_quoted(campaign)
+        if not campaign:
+            self.error(404)
+            return
+        if not campaign.is_gamemaster():
+            self.redirect(users.create_login_url(self.request.uri))
+            return
+
         template_values = {
             'user' : self.user_info(),
-            'campaign' : campaign
+            'campaign' : campaign,
+            'characters' : campaign.characters(),
         }
         self.render('characters.html', template_values)
+
+    def post(self, campaign):
+        campaign = model.Campaign.get_by_quoted(campaign)
+        if not campaign:
+            self.error(404)
+            return
+        if not campaign.is_gamemaster():
+            self.redirect(users.create_login_url(self.request.uri))
+            return
+        character = self.request.get('remove')
+        if character:
+            campaign.delete_character(character)
+        template_values = {
+            'user' : self.user_info(),
+            'campaign' : campaign,
+            'characters' : campaign.characters(),
+        }
+        self.render('characters.html', template_values)
+    
+class AddCharacterPage(FreeRealmsRequestHandler):
+
+    class FormData(object):
+    
+        def __init__(self, request):
+            self.name = request.get('name')
+            self.short_desc = request.get('short_desc')
+            self.description = request.get('description')
+
+    def form_data(self):
+        return self.FormData(self.request)
+
+    def get(self, campaign):
+        campaign = model.Campaign.get_by_quoted(campaign)
+        if not campaign:
+            self.error(404)
+            return
+        if not campaign.is_gamemaster():
+            self.redirect(users.create_login_url(self.request.uri))
+            return
+        template_values = {
+            'user' : self.user_info(),
+            'campaign' : campaign,
+        }
+        self.render('add_character.html', template_values)        
+
+    def post(self, campaign):
+        campaign = model.Campaign.get_by_quoted(campaign)
+        if not campaign:
+            self.error(404)
+            return
+        if not campaign.is_gamemaster():
+            self.redirect(users.create_login_url(self.request.uri))
+            return
+        form = self.form_data()
+        try:
+            campaign.create_character(form.name, form.short_desc, form.description)
+            self.relative_redirect(campaign.url + 'characters/')
+        except ClientError as e:
+            template_values = {
+                'form' : form,
+                'user' : self.user_info(),
+                'campaign' : campaign,
+                'error_msg' : e.msg
+            }
+            self.render('add_character.html', template_values)
+
 
 class CharacterPage(FreeRealmsRequestHandler):
 
     def get(self, campaign, character):
         campaign = model.Campaign.get_by_quoted(campaign)
-        
+
+QUOTED_GROUP = r'([a-zA-Z0-9_\.\-%]+)'
 
 application = webapp.WSGIApplication(
     [
-        ('/', MainPage),
-        ('/add', AddPage),
-        ('/campaigns/(.*)/', CampaignPage),
-        ('/campaigns/(.*)/new', NewPage),
-        ('/campaigns/(.*)/description', DescriptionPage),
-        ('/campaigns/(.*)/application', ApplicationPage),
-        ('/campaigns/(.*)/characters', CharactersPage),
-        ('/campaigns/(.*)/applications', ApplicationsPage),
-        ('/campaigns/(.*)/players', PlayersPage),
-        ('/campaigns/(.*)/characters/(.*)/', CharacterPage),
+        (r'/', MainPage),
+        (r'/add', AddPage),
+        (r'/campaigns/%s/' % QUOTED_GROUP, CampaignPage),
+        (r'/campaigns/%s/new' % QUOTED_GROUP, NewPage),
+        (r'/campaigns/%s/description' % QUOTED_GROUP, DescriptionPage),
+        (r'/campaigns/%s/application' % QUOTED_GROUP, ApplicationPage),
+        (r'/campaigns/%s/applications' % QUOTED_GROUP, ApplicationsPage),
+        (r'/campaigns/%s/players' % QUOTED_GROUP, PlayersPage),
+        (r'/campaigns/%s/characters/' % QUOTED_GROUP, CharactersPage),
+        (r'/campaigns/%s/characters/add' % QUOTED_GROUP, AddCharacterPage),
+        (r'/campaigns/%s/characters/%s/' % (QUOTED_GROUP, QUOTED_GROUP), CharacterPage),
     ], debug=True)
 
 

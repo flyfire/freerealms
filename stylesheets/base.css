@@ -8,17 +8,19 @@ body {
     background-color: white;
 }
 
+
 #header {
     position: relative;
-    background-color: aliceblue;
-    padding-left: 0.5em;
-    border-bottom: solid 1px cornflowerblue;
 }
 
 #user {
     position: absolute;
     top: 0.5em;
     right: 0.5em;
+}
+
+#gamemaster {
+    border-bottom: solid 1px silver;
 }
 
 #content {
@@ -42,12 +44,19 @@ body {
 
 #footer {
     margin-top: 0.5em;
+}
+
+.copyright {
     padding-top: 0.25em;
     padding-bottom: 0.25em;
     text-align: center;
     border-top: solid 1px cornflowerblue;
     background-color: aliceblue;
     clear: both;
+}
+
+#colophon {
+    text-align: right;
 }
 
 #campaign {
@@ -60,9 +69,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
+    background-color: aliceblue;
+    padding: 0.25em 0.5em;
+    border-bottom: solid 1px cornflowerblue;
     color: mediumblue;
     margin: 0;
-    padding: 0.25em 0;
     font-size: 2em;
     line-height: 0.75em;
 }
@@ -82,6 +93,10 @@ input, textarea {
 
 .form button {
     float: right;
+}
+
+table th {
+    text-align: left;
 }
 
 td button {
@@ -133,7 +148,7 @@ dd {
 }
 
 ul.menu {
-    display: inline;
+    display: block;
     margin: 0;
     padding: 0;
     list-style-type: none;
@@ -141,10 +156,20 @@ ul.menu {
 
 ul.menu li {
     display: inline;
+    margin-left: 0.25em;
+    margin-right: 0.25em;
 }
 
 .menu a {
     color: blue;
+}
+
+#gamemaster a {
+    text-decoration: none;
+}
+
+#gamemaster a:hover {
+    text-decoration: underline;
 }
 
 .note {

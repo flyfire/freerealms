@@ -56,4 +56,10 @@ indexes:
 - kind: Player
   ancestor: yes
   properties:
+  - name: characters
+  - name: user
+
+- kind: Player
+  ancestor: yes
+  properties:
   - name: user

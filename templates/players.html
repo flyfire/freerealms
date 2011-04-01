@@ -22,7 +22,11 @@
                         <button name="gamemaster" value="{{ player.user_id }}">Promote to gamemaster</button>
                         <button name="remove" value="{{ player.user_id }}">Remove from campaign</button>
                         <select name="character" size="1">
-                            <!-- TODO -->
+                            {% for character in player.non_characters %}
+                            <option>
+                                {{ character }}
+                            </option>
+                            {% endfor %}
                         </select>
                         <button name="handover" value="{{ player.user_id }}">Hand over</button>
                     </form>
