@@ -26,9 +26,9 @@
         {% if campaign.is_gamemaster %}
         <ul id="gamemaster" class="menu">
             <li>Gamemaster menu:</li>
-            <li><a href="/campaigns/{{ campaign.name|urlquote }}/characters/">Characters</a></li>
-            <li><a href="/campaigns/{{ campaign.name|urlquote }}/players">Players</a></li>
-            <li><a href="/campaigns/{{ campaign.name|urlquote }}/applications" {% if campaign.new_applications %}class="alert"{% endif %}>Applications</a></li>
+            <li><a href="{{ campaign.url }}characters/">Characters</a></li>
+            <li><a href="{{ campaign.url }}players">Players</a></li>
+            <li><a href="{{ campaign.url }}applications" {% if campaign.new_applications %}class="alert"{% endif %}>Applications</a></li>
         </ul>
         {% endif %}
     </div>
