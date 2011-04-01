@@ -52,7 +52,7 @@ class AddPage(FreeRealmsRequestHandler):
         try:
             campaign = model.Campaign.create(name, description, system)
             self.relative_redirect(campaign.url)
-        except ClientError as e:
+        except ClientError, e:
             self.render(
                 name=name, system=system, description=description,
                 error_msg=e.msg)

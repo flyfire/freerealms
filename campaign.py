@@ -82,7 +82,7 @@ class ApplicationPage(FreeRealmsRequestHandler):
             else:
                 campaign.delete_application()
             self.relative_redirect('/')
-        except ClientError as e:
+        except ClientError, e:
             self.render(campaign=campaign, message=message, error_msg=e.msg)
 
 
@@ -189,7 +189,7 @@ class AddCharacterPage(FreeRealmsRequestHandler):
         try:
             campaign.create_character(name, short_desc, description)
             self.relative_redirect(campaign.url + 'characters/')
-        except ClientError as e:
+        except ClientError, e:
             self.render(
                 campaign=campaign, name=name, short_desc=short_desc,
                 description=description, error_msg=e.msg)
