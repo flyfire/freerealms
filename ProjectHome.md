@@ -1,0 +1,1 @@
+A web application built on top on the Google App Engine platform that allows players to run play-by-post role-playing campaigns.
